@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西游识字</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="route-map-view">
+        <h1 class="game-title">西游识字 · 路线图</h1>
+        <div id="level-nodes-container">
+            </div>
+    </div>
+
+    <div id="game-view" class="hidden">
+        <div id="app-container">
+            <header>
+                <h1 id="scene-title"></h1>
+            </header>
+            <main>
+                <div class="side-text left-text">灵根育孕源流出</div>
+                <img id="scene-image" src="" alt="场景图片">
+                <div id="learning-zone">
+                    <div id="character-display" class="card">?</div>
+                    <div id="quiz-options">
+                        <button class="option-btn"></button>
+                        <button class="option-btn"></button>
+                        <button class="option-btn"></button>
+                        <button class="option-btn"></button>
+                    </div>
+                </div>
+                <div id="feedback-message"></div>
+                <div class="side-text right-text">心性修持大道生</div>
+            </main>
+            <footer>
+                <span id="lives-tracker"></span>
+                <span id="progress-tracker"></span> <span id="score-tracker"></span>
+            </footer>
+        </div>
+
+        <div id="level-complete-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="modal-title"></h2>
+                <p id="modal-message"></p>
+                <button id="continue-btn">返回路线图</button>
+            </div>
+        </div>
+        <div id="fail-modal" class="modal hidden">
+            <div class="modal-content fail-modal">
+                <h2>闯关失败</h2>
+                <p>别灰心，再来一次吧！</p>
+                <button id="retry-btn">返回路线图</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>

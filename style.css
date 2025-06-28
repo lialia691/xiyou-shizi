@@ -1,0 +1,312 @@
+/* style.css - 最终优化版 */
+
+/* 1. 全局与基础布局 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f4f6f9; /* 稍微调整背景色，更柔和 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px; /* 在小屏幕上给body一点边距 */
+    box-sizing: border-box; /* 让padding表现更符合直觉 */
+}
+
+#app-container {
+    width: 100%;
+    max-width: 420px; /* 稍微加宽一点点 */
+    background: white;
+    border-radius: 16px; /* 圆角更明显一点 */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    padding: 25px;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+/* 2. 头部与标题 */
+header {
+    margin-bottom: 20px;
+}
+.game-title {
+    font-size: 2.2em;
+    color: #d9534f;
+    margin: 0;
+    font-weight: bold;
+}
+header h2#scene-title { /* 更精确的选择器 */
+    font-size: 1.4em;
+    color: #555;
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-weight: normal; /* 关卡标题不用加粗 */
+}
+
+/* 3. 主要内容区 */
+main {
+    margin-bottom: 20px;
+    position: relative; /* 【关键】让 main 成为诗句定位的参照物 */
+}
+#scene-image {
+    display: block;          /* 确保它是块级元素 (用于居中) */
+    margin: 0 auto 25px;   /* 实现完美的水平居中 */
+    width: 70%;              /* 这是你选择的完美尺寸！ */
+    max-width: 300px;        /* 同时限制最大宽度 */
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
+}
+#character-display {
+    font-size: 90px;
+    font-weight: bold;
+    height: 140px;
+    width: 140px;
+    margin: 0 auto 25px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 3px solid #eee;
+    border-radius: 12px;
+}
+
+/* 4. 答题与反馈 */
+#quiz-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.option-btn {
+    padding: 15px;
+    font-size: 1.25em;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    background-color: #fdfdfd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.option-btn:hover:enabled {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+    transform: translateY(-2px);
+}
+.option-btn:active:enabled {
+    transform: translateY(0);
+}
+.option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.correct-option {
+    background-color: #28a745 !important;
+    color: white;
+    border-color: #28a745 !important;
+}
+.wrong-option {
+    background-color: #dc3545 !important;
+    color: white;
+    border-color: #dc3545 !important;
+}
+#feedback-message {
+    margin-top: 20px;
+    font-size: 1.1em;
+    height: 25px;
+    font-weight: bold;
+}
+
+/* 5. 页脚 */
+footer {
+    font-size: 1.2em;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 5px 0 5px; /* 给页脚一点内边距 */
+    border-top: 1px solid #f0f0f0; /* 加一条分割线 */
+}
+footer span {
+    margin: 0 5px;
+}
+
+
+/* 6. 动画效果 */
+@keyframes wrong-answer-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+.shake {
+    animation: wrong-answer-shake 0.3s ease-in-out;
+}
+@keyframes correct-answer-animation {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+.correct {
+    animation: correct-answer-animation 0.3s ease-in-out;
+}
+
+/* 7. 弹窗样式 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+.modal-content h2 {
+    font-size: 2em;
+    color: #FFD700;
+    margin-top: 0;
+}
+.modal-content p {
+    font-size: 1.2em;
+    color: #555;
+}
+#continue-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.2em;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+.fail-modal {
+    border: 3px solid #dc3545;
+}
+.fail-modal h2 {
+    color: #dc3545;
+}
+#retry-btn {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.2em;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.hidden {
+    display: none !important;
+}
+
+/* 8.【重大升级】两侧诗句的新样式 */
+.side-text {
+    /* 使用书法字体 */
+    font-family: 'Ma Shan Zheng', cursive;
+    
+    /* 【关键】定位方式改为 absolute */
+    position: absolute; 
+    top: 0;
+    height: 100%; /* 高度占满 main 区域 */
+    
+    /* 【最终修正】垂直与水平对齐 */
+    display: flex;
+    justify-content: flex-start; /* 修正：改为 flex-start，实现真正意义的“顶部对齐” */
+    align-items: center;         /* 修正：改为 center，确保水平方向上是居中的 */
+    padding-top: 60px;           /* 现在这个值可以自由调整了！*/
+     writing-mode: vertical-rl;     /* 【关键】实现文字竖排的核心代码！ */
+    
+    /* 外观 */
+    font-size: 1.8em; /* 调整了初始大小 */
+    color: #000;
+    opacity: 0.9; /* 透明度调低，更像背景纹样 */
+    letter-spacing: 0.2em;
+        /* 【新增】神奇的描边效果，0.5px是描边粗细 */
+    -webkit-text-stroke: 0.5px #000; 
+    
+    /* 防止文字被选中 */
+    user-select: none; 
+}
+
+.left-text {
+    left: 10px; /* 距离 main 区域左边10像素 */
+}
+
+.right-text {
+    right: 10px; /* 距离 main 区域右边10像素 */
+}
+
+/* 【关键】新的响应式调整：在小屏幕上缩小字体，而不是隐藏 */
+@media (max-width: 480px) {
+    .side-text {
+        font-size: 1.3em; /* 缩小字体 */
+        left: 5px; /* 调整边距 */
+        right: 5px;
+    }
+    #scene-image {
+        width: 75%; /* 在手机上让图片稍微小一点，给诗句更多空间 */
+    }
+}
+
+/* 9. 新增的路线图样式 */
+#route-map-view {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    padding: 20px;
+}
+
+#level-nodes-container {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* 节点之间的间距 */
+}
+
+.level-node {
+    padding: 20px 40px;
+    border: 3px solid #ccc;
+    border-radius: 12px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #888;
+    background-color: #f0f0f0;
+    cursor: not-allowed; /* 默认是不可点击状态 */
+    position: relative;
+    transition: all 0.3s ease;
+    width: 80%;
+    max-width: 300px;
+}
+
+.level-node.unlocked {
+    border-color: #d9534f;
+    color: #d9534f;
+    background-color: #fff;
+    cursor: pointer; /* 解锁后可以点击 */
+    box-shadow: 0 4px 15px rgba(217, 83, 79, 0.2);
+}
+
+.level-node.unlocked:hover {
+    transform: translateY(-5px);
+}
+
+.level-node.completed {
+    border-color: #4CAF50;
+    color: #4CAF50;
+    background-color: #f2fff2;
+    cursor: pointer; /* 已通关的也可以再次进入 */
+}
+
+.level-node .status-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 20px;
+    font-size: 1.5em;
+}
