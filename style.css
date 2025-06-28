@@ -45,8 +45,20 @@ header h2#scene-title { /* 更精确的选择器 */
 
 /* 3. 主要内容区 */
 main {
+    display: flex;             /* 【核心】启用 Flexbox 布局！ */
+    justify-content: space-between; /* 让子项之间有平均的间距 */
+    align-items: center;       /* 垂直居中对齐 */
+    width: 100%;               /* 确保 main 占满容器宽度 */
     margin-bottom: 20px;
-    position: relative; /* 【关键】让 main 成为诗句定位的参照物 */
+    position: relative;
+    box-sizing: border-box;
+}
+#main-content-wrapper {
+    flex-grow: 1; /* 【核心】让中间内容区域占据所有剩余空间 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0; /* 防止内容过大时撑破布局 */
 }
 #scene-image {
     display: block;          /* 确保它是块级元素 (用于居中) */
@@ -205,52 +217,45 @@ footer span {
 }
 
 /* 8.【重大升级】两侧诗句的新样式 */
+
 .side-text {
-    /* 使用书法字体 */
+    /* 保留这些字体和外观样式 */
     font-family: 'Ma Shan Zheng', cursive;
-    
-    /* 【关键】定位方式改为 absolute */
-    position: absolute; 
-    top: 0;
-    height: 100%; /* 高度占满 main 区域 */
-    
-    /* 【最终修正】垂直与水平对齐 */
-    display: flex;
-    justify-content: flex-start; /* 修正：改为 flex-start，实现真正意义的“顶部对齐” */
-    align-items: center;         /* 修正：改为 center，确保水平方向上是居中的 */
-    padding-top: 60px;           /* 现在这个值可以自由调整了！*/
-     writing-mode: vertical-rl;     /* 【关键】实现文字竖排的核心代码！ */
-    
-    /* 外观 */
-    font-size: 1.8em; /* 调整了初始大小 */
+    writing-mode: vertical-rl;
+    font-size: 1.8em;
     color: #000;
-    opacity: 0.9; /* 透明度调低，更像背景纹样 */
+    opacity: 0.9;
     letter-spacing: 0.2em;
-        /* 【新增】神奇的描边效果，0.5px是描边粗细 */
-    -webkit-text-stroke: 0.5px #000; 
-    
-    /* 防止文字被选中 */
-    user-select: none; 
+    -webkit-text-stroke: 0.5px #000;
+    user-select: none;
+
+    /* 【新增】让诗句本身不被压缩 */
+    flex-shrink: 0;
+    padding: 20px 5px; /* 给诗句上下一点空间，左右一点边距 */
 }
 
-.left-text {
-    left: 10px; /* 距离 main 区域左边10像素 */
-}
 
-.right-text {
-    right: 10px; /* 距离 main 区域右边10像素 */
-}
-
-/* 【关键】新的响应式调整：在小屏幕上缩小字体，而不是隐藏 */
+/* 【关键】新的响应式调整 */
 @media (max-width: 480px) {
+    /* 【修改】在小屏幕上，减小 main 的内边距 */
+    main {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
     .side-text {
-        font-size: 1.3em; /* 缩小字体 */
-        left: 5px; /* 调整边距 */
-        right: 5px;
-    }
-    #scene-image {
-        width: 75%; /* 在手机上让图片稍微小一点，给诗句更多空间 */
-    }
+     font-size: 1.3em; /* 缩小字体 (保留) */
+        
+        /* 【修改】调整诗句的位置，让它更贴近容器边缘 */
+    left: 8px; 
+    right: 8px;
+  }
+    
+    /* 这里的 #scene-image 宽度调整可以移除了，
+       因为它现在会自动适应父容器的内边距，更智能！*/
+    /* #scene-image {
+         width: 75%; 
+    } */
 }
 
 /* 9. 新增的路线图样式 */
