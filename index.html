@@ -146,5 +146,108 @@
     <!-- 主应用 -->
     <script src="app.js?v=8" defer></script>
 
+    <!-- 临时修复脚本 - 确保基本功能正常 -->
+    <script>
+        // 等待所有脚本加载完成
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                console.log('🔧 临时修复脚本启动');
+
+                // 检查关键函数是否存在
+                if (typeof getGameData === 'undefined') {
+                    console.warn('⚠️ getGameData 函数未定义，创建备用版本');
+                    window.getGameData = function() {
+                        return [
+                            {
+                                scene: "花果山",
+                                image: "images/huaguoshan.jpg",
+                                characters: [
+                                    { char: "山", pinyin: "shān" },
+                                    { char: "水", pinyin: "shuǐ" },
+                                    { char: "花", pinyin: "huā" },
+                                    { char: "果", pinyin: "guǒ" }
+                                ],
+                                item: { name: "金箍棒", description: "孙悟空的神兵利器" }
+                            },
+                            {
+                                scene: "东海龙宫",
+                                image: "images/huaguoshan.jpg",
+                                characters: [
+                                    { char: "龙", pinyin: "lóng" },
+                                    { char: "海", pinyin: "hǎi" },
+                                    { char: "宫", pinyin: "gōng" },
+                                    { char: "王", pinyin: "wáng" }
+                                ],
+                                item: { name: "龙鳞", description: "东海龙王的鳞片" }
+                            }
+                        ];
+                    };
+                }
+
+                // 检查UI是否正确渲染
+                const levelContainer = document.getElementById('level-nodes-container');
+                if (levelContainer && levelContainer.children.length === 0) {
+                    console.log('🔧 修复空的关卡容器');
+
+                    // 手动渲染关卡节点
+                    const gameData = getGameData();
+                    gameData.forEach((level, index) => {
+                        const node = document.createElement('div');
+                        node.classList.add('level-node');
+                        node.textContent = level.scene;
+                        node.dataset.levelIndex = index;
+
+                        if (index === 0) {
+                            node.classList.add('unlocked');
+                        } else {
+                            node.classList.add('locked');
+                        }
+
+                        const statusIcon = document.createElement('span');
+                        statusIcon.className = 'status-icon';
+                        statusIcon.textContent = index === 0 ? '▶️' : '🔒';
+                        node.appendChild(statusIcon);
+
+                        levelContainer.appendChild(node);
+                    });
+
+                    console.log('✅ 关卡节点已修复');
+                }
+
+                // 确保点击事件正常工作
+                if (levelContainer && !levelContainer.hasAttribute('data-events-added')) {
+                    levelContainer.addEventListener('click', function(e) {
+                        const levelNode = e.target.closest('.level-node');
+                        if (!levelNode || levelNode.classList.contains('locked')) {
+                            return;
+                        }
+
+                        const levelIndex = parseInt(levelNode.dataset.levelIndex, 10);
+                        console.log('🎯 点击关卡:', levelIndex);
+
+                        // 激活音频
+                        if (window.speechSynthesis) {
+                            const utterance = new SpeechSynthesisUtterance(levelNode.textContent);
+                            utterance.lang = 'zh-CN';
+                            utterance.volume = 0.8;
+                            window.speechSynthesis.speak(utterance);
+                        }
+
+                        // 尝试启动游戏
+                        if (window.GameLogic && window.GameLogic.startLevel) {
+                            window.GameLogic.startLevel(levelIndex);
+                        } else {
+                            alert(`进入${levelNode.textContent}！游戏功能正在加载中...`);
+                        }
+                    });
+
+                    levelContainer.setAttribute('data-events-added', 'true');
+                    console.log('✅ 点击事件已添加');
+                }
+
+            }, 1000);
+        });
+    </script>
+
 </body>
 </html>
