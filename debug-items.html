@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物品调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .item-test {
+            font-size: 20px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .emoji {
+            font-size: 28px;
+            margin-right: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>物品显示调试工具</h1>
+    
+    <div class="debug-container">
+        <h2>测试物品解析</h2>
+        <button onclick="testItems()">测试所有物品</button>
+        <button onclick="testSingleItem()">测试单个物品</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // 简化的物品解析函数
+        function parseItem(itemString) {
+            if (!itemString) {
+                return { name: "宝物", icon: "💎" };
+            }
+
+            // 使用Array.from来正确处理Unicode字符，包括emoji
+            const chars = Array.from(itemString);
+            
+            if (chars.length > 1) {
+                // 第一个字符作为图标，其余作为名称
+                return {
+                    name: chars.slice(1).join(''),
+                    icon: chars[0]
+                };
+            } else {
+                // 如果只有一个字符，使用默认图标
+                return {
+                    name: itemString,
+                    icon: "💎"
+                };
+            }
+        }
+
+        // 测试数据
+        const testItems = [
+            "🍑桃子",
+            "🍌香蕉", 
+            "🥥椰子",
+            "🌸花朵",
+            "⚡金箍棒",
+            "👑龙冠",
+            "💎宝珠",
+            "🌊海水",
+            "🔥火眼金睛",
+            "☁️筋斗云",
+            "⚔️兵器",
+            "🏰天宫",
+            "🏔️五行山",
+            "📿佛珠",
+            "🕯️香火",
+            "⏰时间"
+        ];
+
+        function testItems() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h3>测试结果:</h3>';
+            
+            testItems.forEach((item, index) => {
+                const parsed = parseItem(item);
+                const div = document.createElement('div');
+                div.className = 'item-test';
+                div.innerHTML = `
+                    <strong>${index + 1}.</strong> 
+                    原始: "${item}" → 
+                    <span class="emoji">${parsed.icon}</span>
+                    <span>名称: "${parsed.name}"</span>
+                    <span style="margin-left: 20px; color: ${parsed.icon === '?' ? 'red' : 'green'};">
+                        ${parsed.icon === '?' ? '❌ 失败' : '✅ 成功'}
+                    </span>
+                `;
+                resultsDiv.appendChild(div);
+            });
+        }
+
+        function testSingleItem() {
+            const item = prompt("请输入要测试的物品字符串（例如：🍑桃子）:");
+            if (item) {
+                const parsed = parseItem(item);
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `
+                    <h3>单个测试结果:</h3>
+                    <div class="item-test">
+                        原始: "${item}" → 
+                        <span class="emoji">${parsed.icon}</span>
+                        <span>名称: "${parsed.name}"</span>
+                        <span style="margin-left: 20px; color: ${parsed.icon === '?' ? 'red' : 'green'};">
+                            ${parsed.icon === '?' ? '❌ 失败' : '✅ 成功'}
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载时自动运行测试
+        window.addEventListener('DOMContentLoaded', testItems);
+    </script>
+</body>
+</html>

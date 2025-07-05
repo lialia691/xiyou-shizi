@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI菩提系统测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🧘‍♂️ AI菩提智能学习系统测试</h1>
+        
+        <div class="test-section">
+            <h3>系统初始化测试</h3>
+            <button onclick="testSystemInitialization()">测试系统初始化</button>
+            <div id="init-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>数据管理测试</h3>
+            <button onclick="testDataManagement()">测试数据管理</button>
+            <div id="data-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>学习推荐测试</h3>
+            <button onclick="testLearningRecommendation()">测试学习推荐</button>
+            <div id="recommendation-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>学习记录测试</h3>
+            <button onclick="testLearningRecord()">测试学习记录</button>
+            <div id="record-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>复习调度测试</h3>
+            <button onclick="testReviewScheduling()">测试复习调度</button>
+            <div id="review-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>系统状态</h3>
+            <button onclick="showSystemStatus()">显示系统状态</button>
+            <div id="status-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>完整测试</h3>
+            <button onclick="runAllTests()">运行所有测试</button>
+            <div id="all-results"></div>
+        </div>
+    </div>
+
+    <!-- 引入所有模块 -->
+    <script src="ai-puti-system.js"></script>
+    <script src="user-data-manager.js"></script>
+    <script src="character-provider.js"></script>
+    <script src="review-scheduler.js"></script>
+
+    <script>
+        let aiPutiSystem = null;
+
+        // 工具函数
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        // 测试系统初始化
+        async function testSystemInitialization() {
+            clearResults('init-results');
+            
+            try {
+                logResult('init-results', '🔄 开始初始化AI菩提系统...', 'info');
+                
+                aiPutiSystem = new AIPutiSystem();
+                const success = await aiPutiSystem.initialize();
+                
+                if (success) {
+                    logResult('init-results', '✅ 系统初始化成功！', 'success');
+                    
+                    const status = aiPutiSystem.getSystemStatus();
+                    logResult('init-results', `📊 系统状态: ${JSON.stringify(status, null, 2)}`, 'info');
+                } else {
+                    logResult('init-results', '❌ 系统初始化失败', 'error');
+                }
+            } catch (error) {
+                logResult('init-results', `❌ 初始化错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试数据管理
+        async function testDataManagement() {
+            clearResults('data-results');
+            
+            if (!aiPutiSystem) {
+                logResult('data-results', '⚠️ 请先初始化系统', 'error');
+                return;
+            }
+
+            try {
+                logResult('data-results', '🔄 测试数据管理功能...', 'info');
+                
+                // 测试保存数据
+                const saveSuccess = await aiPutiSystem.saveUserData();
+                logResult('data-results', `💾 数据保存: ${saveSuccess ? '成功' : '失败'}`, 
+                    saveSuccess ? 'success' : 'error');
+                
+                // 测试导出数据
+                const exportData = await aiPutiSystem.exportUserData();
+                if (exportData) {
+                    logResult('data-results', '📤 数据导出成功', 'success');
+                    logResult('data-results', `📊 导出数据大小: ${JSON.stringify(exportData).length} 字符`, 'info');
+                } else {
+                    logResult('data-results', '❌ 数据导出失败', 'error');
+                }
+                
+            } catch (error) {
+                logResult('data-results', `❌ 数据管理错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试学习推荐
+        async function testLearningRecommendation() {
+            clearResults('recommendation-results');
+            
+            if (!aiPutiSystem) {
+                logResult('recommendation-results', '⚠️ 请先初始化系统', 'error');
+                return;
+            }
+
+            try {
+                logResult('recommendation-results', '🔄 测试学习推荐功能...', 'info');
+                
+                const recommendation = await aiPutiSystem.recommendNextLearning();
+                logResult('recommendation-results', '✅ 获取学习推荐成功', 'success');
+                logResult('recommendation-results', 
+                    `📚 推荐类型: ${recommendation.type}<br>
+                     📝 推荐理由: ${recommendation.reason}<br>
+                     ⏱️ 预计时间: ${recommendation.estimatedTime} 分钟<br>
+                     📊 汉字数量: ${recommendation.characters.length}`, 'info');
+                
+                if (recommendation.characters.length > 0) {
+                    const chars = recommendation.characters.slice(0, 5).map(c => c.char || c.charId).join(', ');
+                    logResult('recommendation-results', `🔤 推荐汉字: ${chars}`, 'info');
+                }
+                
+            } catch (error) {
+                logResult('recommendation-results', `❌ 推荐功能错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试学习记录
+        async function testLearningRecord() {
+            clearResults('record-results');
+            
+            if (!aiPutiSystem) {
+                logResult('record-results', '⚠️ 请先初始化系统', 'error');
+                return;
+            }
+
+            try {
+                logResult('record-results', '🔄 测试学习记录功能...', 'info');
+                
+                // 模拟学习几个汉字
+                const testChars = ['一', '二', '三', '四', '五'];
+                
+                for (let i = 0; i < testChars.length; i++) {
+                    const char = testChars[i];
+                    const isCorrect = Math.random() > 0.3; // 70% 正确率
+                    const timeSpent = Math.random() * 5000 + 1000; // 1-6秒
+                    
+                    const result = await aiPutiSystem.recordLearningResult(char, isCorrect, timeSpent);
+                    logResult('record-results', 
+                        `📝 记录 "${char}": ${isCorrect ? '✅' : '❌'} (${Math.round(timeSpent)}ms)`, 
+                        isCorrect ? 'success' : 'error');
+                }
+                
+                // 显示学习统计
+                const stats = aiPutiSystem.getUserLearningStats();
+                logResult('record-results', 
+                    `📊 学习统计:<br>
+                     - 总汉字数: ${stats.totalCharacters}<br>
+                     - 掌握汉字: ${stats.uniqueCharsLearned}<br>
+                     - 平均正确率: ${(stats.averageCorrectRate * 100).toFixed(1)}%<br>
+                     - 平均响应时间: ${Math.round(stats.averageResponseTime)}ms`, 'info');
+                
+            } catch (error) {
+                logResult('record-results', `❌ 学习记录错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试复习调度
+        async function testReviewScheduling() {
+            clearResults('review-results');
+            
+            if (!aiPutiSystem) {
+                logResult('review-results', '⚠️ 请先初始化系统', 'error');
+                return;
+            }
+
+            try {
+                logResult('review-results', '🔄 测试复习调度功能...', 'info');
+                
+                const reviewNeeded = aiPutiSystem.getCharactersNeedingReview();
+                logResult('review-results', `📚 需要复习的汉字数量: ${reviewNeeded.length}`, 'info');
+                
+                if (reviewNeeded.length > 0) {
+                    const topReview = reviewNeeded.slice(0, 3);
+                    topReview.forEach(item => {
+                        logResult('review-results', 
+                            `🔤 "${item.charId}" - 优先级: ${item.priority.toFixed(2)}, 正确率: ${(item.correctRate * 100).toFixed(1)}%`, 
+                            'info');
+                    });
+                } else {
+                    logResult('review-results', '🎉 暂无需要复习的汉字', 'success');
+                }
+                
+                // 测试AI建议
+                const advice = aiPutiSystem.generatePutiAdvice();
+                if (advice.length > 0) {
+                    logResult('review-results', '💡 AI菩提建议:', 'info');
+                    advice.forEach(item => {
+                        logResult('review-results', `${item.icon} ${item.message}`, 'info');
+                    });
+                } else {
+                    logResult('review-results', '😌 暂无特别建议', 'success');
+                }
+                
+            } catch (error) {
+                logResult('review-results', `❌ 复习调度错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示系统状态
+        async function showSystemStatus() {
+            clearResults('status-results');
+            
+            if (!aiPutiSystem) {
+                logResult('status-results', '⚠️ 系统未初始化', 'error');
+                return;
+            }
+
+            try {
+                const status = aiPutiSystem.getSystemStatus();
+                const stats = aiPutiSystem.getUserLearningStats();
+                
+                logResult('status-results', 
+                    `<div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${status.isInitialized ? '✅' : '❌'}</div>
+                            <div class="stat-label">系统状态</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${status.totalCharacters}</div>
+                            <div class="stat-label">学习汉字数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.uniqueCharsLearned}</div>
+                            <div class="stat-label">掌握汉字数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${(stats.averageCorrectRate * 100).toFixed(1)}%</div>
+                            <div class="stat-label">平均正确率</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${status.consecutiveDays}</div>
+                            <div class="stat-label">连续学习天数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${Math.round(stats.totalStudyTime / 1000)}s</div>
+                            <div class="stat-label">总学习时间</div>
+                        </div>
+                    </div>`, 'info');
+                
+            } catch (error) {
+                logResult('status-results', `❌ 状态获取错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            clearResults('all-results');
+            logResult('all-results', '🚀 开始运行完整测试套件...', 'info');
+            
+            try {
+                await testSystemInitialization();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testDataManagement();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testLearningRecommendation();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testLearningRecord();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testReviewScheduling();
+                
+                logResult('all-results', '🎉 所有测试完成！', 'success');
+                
+            } catch (error) {
+                logResult('all-results', `❌ 测试套件错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载完成后自动运行初始化测试
+        window.addEventListener('load', () => {
+            console.log('🧘‍♂️ AI菩提系统测试页面已加载');
+        });
+    </script>
+</body>
+</html>

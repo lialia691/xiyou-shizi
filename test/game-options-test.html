@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏选项发音测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .character-display {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .character-text {
+            font-size: 4em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .character-info {
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .option-btn {
+            padding: 20px 15px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+        
+        .option-btn:hover:enabled {
+            background-color: #f0f8ff;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .option-btn.playing {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            animation: optionPulse 0.6s ease-in-out;
+        }
+        
+        .option-btn.correct-option {
+            background: #4CAF50;
+            color: white;
+            border-color: #45a049;
+        }
+        
+        .option-btn.wrong-option {
+            background: #f44336;
+            color: white;
+            border-color: #da190b;
+        }
+        
+        @keyframes optionPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .feedback {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 1.1em;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls {
+            margin: 20px 0;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        
+        .test-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 0.9em;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 游戏选项发音测试</h1>
+        
+        <div class="test-info">
+            <strong>测试目标：</strong>验证所有拼音选项（包括错误选项）都能正确发音<br>
+            <strong>测试方法：</strong>点击任意拼音选项，听发音是否正确
+        </div>
+        
+        <div class="status" id="status">点击"初始化"开始测试</div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="initTest()">🔄 初始化语音</button>
+            <button class="control-btn" onclick="nextQuestion()">➡️ 下一题</button>
+            <button class="control-btn" onclick="testAllOptions()">🎵 测试全部选项</button>
+        </div>
+        
+        <div class="character-display">
+            <div class="character-text" id="character-text">的</div>
+            <div class="character-info" id="character-info">点击下面的拼音选项听发音</div>
+        </div>
+        
+        <div class="feedback" id="feedback">所有选项都应该能正确发音</div>
+        
+        <div class="quiz-options" id="quiz-options">
+            <button class="option-btn" data-pinyin="de">de</button>
+            <button class="option-btn" data-pinyin="lái">lái</button>
+            <button class="option-btn" data-pinyin="zài">zài</button>
+            <button class="option-btn" data-pinyin="tā">tā</button>
+        </div>
+    </div>
+
+    <script src="speech-system.js"></script>
+    <script>
+        let speechSystem = null;
+        let currentChar = { char: '的', pinyin: 'de' };
+        let correctPinyin = 'de';
+        let currentIndex = 0;
+        
+        const testQuestions = [
+            {
+                char: '的', 
+                pinyin: 'de',
+                options: ['de', 'lái', 'zài', 'tā']
+            },
+            {
+                char: '一', 
+                pinyin: 'yī',
+                options: ['yī', 'shì', 'wǒ', 'nǐ']
+            },
+            {
+                char: '是', 
+                pinyin: 'shì',
+                options: ['shì', 'hǎo', 'xué', 'zì']
+            },
+            {
+                char: '了', 
+                pinyin: 'le',
+                options: ['le', 'mā', 'má', 'mǎ']
+            },
+            {
+                char: '我', 
+                pinyin: 'wǒ',
+                options: ['wǒ', 'dào', 'shí', 'dà']
+            },
+            {
+                char: '你', 
+                pinyin: 'nǐ',
+                options: ['nǐ', 'wéi', 'zhōng', 'shuō']
+            },
+            {
+                char: '他', 
+                pinyin: 'tā',
+                options: ['tā', 'shēng', 'guó', 'nián']
+            },
+            {
+                char: '好', 
+                pinyin: 'hǎo',
+                options: ['hǎo', 'jiù', 'nà', 'hé']
+            }
+        ];
+        
+        async function initTest() {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                statusEl.innerHTML = '🔄 正在初始化语音系统...';
+                
+                speechSystem = new SpeechSystem();
+                await speechSystem.init();
+                
+                const status = speechSystem.getStatus();
+                
+                if (status.isSupported && status.isEnabled) {
+                    statusEl.innerHTML = `✅ 语音系统就绪！当前语音: ${status.currentVoice}`;
+                    loadQuestion();
+                } else {
+                    statusEl.innerHTML = '❌ 语音系统不可用';
+                }
+            } catch (error) {
+                statusEl.innerHTML = `❌ 初始化失败: ${error.message}`;
+                console.error('初始化失败:', error);
+            }
+        }
+        
+        function loadQuestion() {
+            const question = testQuestions[currentIndex];
+            currentChar = { char: question.char, pinyin: question.pinyin };
+            correctPinyin = question.pinyin;
+            
+            // 更新显示
+            document.getElementById('character-text').textContent = question.char;
+            document.getElementById('character-info').textContent = `正确拼音: ${question.pinyin}`;
+            document.getElementById('feedback').textContent = '点击任意拼音选项测试发音';
+            document.getElementById('feedback').style.color = 'white';
+            
+            // 更新选项
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach((btn, index) => {
+                if (index < question.options.length) {
+                    btn.textContent = question.options[index];
+                    btn.dataset.pinyin = question.options[index];
+                    btn.disabled = false;
+                    btn.classList.remove('correct-option', 'wrong-option', 'playing');
+                    btn.onclick = () => handleOptionClick(btn);
+                    btn.style.display = 'block';
+                } else {
+                    btn.style.display = 'none';
+                }
+            });
+        }
+        
+        async function handleOptionClick(button) {
+            const clickedPinyin = button.dataset.pinyin;
+            
+            // 检查语音系统播放状态
+            if (speechSystem && speechSystem.isPlaying) {
+                console.log('⏸️ 语音正在播放中，跳过新的播放请求');
+                return;
+            }
+            
+            // 播放拼音发音
+            if (clickedPinyin && speechSystem) {
+                button.classList.add('playing');
+                
+                try {
+                    await speechSystem.speakPinyin(clickedPinyin);
+                    document.getElementById('feedback').innerHTML = `🔊 播放完成: ${clickedPinyin}`;
+                } catch (error) {
+                    console.error('播放失败:', error);
+                    document.getElementById('feedback').innerHTML = `❌ 播放失败: ${clickedPinyin}`;
+                }
+                
+                setTimeout(() => {
+                    button.classList.remove('playing');
+                }, 600);
+            }
+            
+            // 显示是否为正确答案
+            setTimeout(() => {
+                if (clickedPinyin === correctPinyin) {
+                    button.classList.add('correct-option');
+                    document.getElementById('feedback').innerHTML = `✅ 正确答案: ${clickedPinyin}`;
+                    document.getElementById('feedback').style.color = '#4CAF50';
+                } else {
+                    button.classList.add('wrong-option');
+                    document.getElementById('feedback').innerHTML = `❌ 错误选项: ${clickedPinyin}（但发音应该正确）`;
+                    document.getElementById('feedback').style.color = '#f44336';
+                }
+            }, 400);
+        }
+        
+        function nextQuestion() {
+            currentIndex = (currentIndex + 1) % testQuestions.length;
+            loadQuestion();
+        }
+        
+        async function testAllOptions() {
+            if (!speechSystem) {
+                document.getElementById('status').innerHTML = '❌ 请先初始化语音系统';
+                return;
+            }
+            
+            const buttons = document.querySelectorAll('.option-btn:not([style*="none"])');
+            const statusEl = document.getElementById('status');
+            
+            statusEl.innerHTML = '🎵 正在测试所有选项...';
+            
+            for (let i = 0; i < buttons.length; i++) {
+                const button = buttons[i];
+                const pinyin = button.dataset.pinyin;
+                
+                if (pinyin) {
+                    button.classList.add('playing');
+                    statusEl.innerHTML = `🎵 测试 ${i + 1}/${buttons.length}: ${pinyin}`;
+                    
+                    try {
+                        await speechSystem.speakPinyin(pinyin);
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                    } catch (error) {
+                        console.error('测试失败:', error);
+                    }
+                    
+                    button.classList.remove('playing');
+                }
+            }
+            
+            statusEl.innerHTML = '✅ 所有选项测试完成！';
+        }
+        
+        // 页面加载时自动初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initTest, 500);
+        });
+    </script>
+</body>
+</html>

@@ -3,65 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>西游识字</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="西游识字 - 基于西游记故事的汉字学习游戏，适合儿童学习中文汉字">
+    <meta name="keywords" content="汉字学习,西游记,儿童教育,中文学习,识字游戏">
+    <meta name="author" content="西游识字团队">
+
+    <!-- 性能优化 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+
+    <!-- PWA支持 -->
+    <meta name="theme-color" content="#d9534f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="西游识字">
+
+    <title>西游识字 </title>
+    <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
-    <div id="route-map-view">
-        <h1 class="game-title">西游识字 · 路线图</h1>
-        <div id="level-nodes-container">
+    <!-- 主菜单：关卡路线图视图 -->
+    <div id="route-map-view" role="main" aria-label="游戏主菜单">
+        <header>
+            <h1 class="game-title">西游识字 · 路线图</h1>
+            <p class="game-subtitle">跟随孙悟空，踏上识字取经路</p>
+        </header>
+
+        <!-- AI菩提助手面板 -->
+        <section id="ai-puti-panel" class="puti-panel" aria-label="AI学习助手">
+            <div class="puti-avatar" role="img" aria-label="AI菩提助手头像">🧘‍♂️</div>
+            <div class="puti-content">
+                <h3>AI菩提助手</h3>
+                <div id="puti-advice" class="puti-advice" aria-live="polite">
+                    正在为您分析学习情况...
+                </div>
+                <div id="puti-recommendation" class="puti-recommendation">
+                    <button id="start-learning-btn" class="puti-btn" type="button">开始学习</button>
+                </div>
             </div>
+        </section>
+
+        <!-- 关卡节点容器 -->
+        <section id="level-nodes-container" aria-label="游戏关卡选择">
+            <!-- 关卡节点将通过JavaScript动态生成 -->
+        </section>
     </div>
 
-    <div id="game-view" class="hidden">
+    <!-- 游戏进行视图 -->
+    <div id="game-view" class="hidden" role="application" aria-label="汉字学习游戏">
         <div id="app-container">
             <header>
-                <h1 id="scene-title"></h1>
+                <h1 id="scene-title" aria-live="polite"></h1>
             </header>
-<main>
-    <div class="side-text left-text">灵根育孕源流出</div>
 
-    <div id="main-content-wrapper">
-        <img id="scene-image" src="" alt="场景图片">
-        <div id="learning-zone">
-            <div id="character-display" class="card">?</div>
-            <div id="quiz-options">
-                <button class="option-btn"></button>
-                <button class="option-btn"></button>
-                <button class="option-btn"></button>
-                <button class="option-btn"></button>
-            </div>
-        </div>
-        <div id="feedback-message"></div>
-    </div>
+            <main>
+                <div class="side-text left-text" aria-hidden="true">灵根育孕源流出</div>
 
-    <div class="side-text right-text">心性修持大道生</div>
-</main>
+                <div id="main-content-wrapper">
+                    <img id="scene-image" src="" alt="当前关卡场景图片" loading="lazy">
+
+                    <div id="learning-zone">
+                        <div id="character-display" class="card" role="img" aria-label="当前学习的汉字">
+                            <div id="character-text">?</div>
+                        </div>
+
+                        <div id="quiz-options" role="group" aria-label="拼音选择题">
+                            <button class="option-btn" type="button" aria-label="拼音选项1"></button>
+                            <button class="option-btn" type="button" aria-label="拼音选项2"></button>
+                            <button class="option-btn" type="button" aria-label="拼音选项3"></button>
+                            <button class="option-btn" type="button" aria-label="拼音选项4"></button>
+                        </div>
+                    </div>
+
+                    <div id="feedback-message" aria-live="assertive" aria-atomic="true"></div>
+                </div>
+
+                <div class="side-text right-text" aria-hidden="true">心性修持大道生</div>
+            </main>
+
             <footer>
-                <span id="lives-tracker"></span>
-                <span id="progress-tracker"></span> <span id="score-tracker"></span>
+                <span id="lives-tracker" aria-label="剩余生命"></span>
+                <span id="progress-tracker" aria-label="游戏进度"></span>
+                <span id="score-tracker" aria-label="当前得分"></span>
             </footer>
         </div>
 
-        <div id="level-complete-modal" class="modal hidden">
+        <!-- 关卡完成模态框 -->
+        <div id="level-complete-modal" class="modal hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
             <div class="modal-content">
                 <h2 id="modal-title"></h2>
                 <p id="modal-message"></p>
-                <button id="continue-btn">返回路线图</button>
+                <button id="continue-btn" type="button">返回路线图</button>
             </div>
         </div>
-        <div id="fail-modal" class="modal hidden">
+
+        <!-- 游戏失败模态框 -->
+        <div id="fail-modal" class="modal hidden" role="dialog" aria-labelledby="fail-modal-title" aria-modal="true">
             <div class="modal-content fail-modal">
-                <h2>闯关失败</h2>
+                <h2 id="fail-modal-title">闯关失败</h2>
                 <p>别灰心，再来一次吧！</p>
-                <button id="retry-btn">返回路线图</button>
+                <button id="retry-btn" type="button">返回路线图</button>
             </div>
         </div>
     </div>
 
-    <script src="data.js"></script>
-    <script src="app.js"></script>
+    <!-- 核心脚本加载 - 按依赖顺序排列 -->
+    <!-- 基础系统 -->
+    <script src="speech-system.js?v=8" defer></script>
+    <script src="character-provider.js?v=8" defer></script>
+
+    <!-- AI和数据管理 -->
+    <script src="ai-puti-system.js?v=7" defer></script>
+    <script src="user-data-manager.js?v=7" defer></script>
+    <script src="review-scheduler.js?v=7" defer></script>
+
+    <!-- 数据处理和生成 -->
+    <script src="data-processor.js?v=9" defer></script>
+    <script src="generate-levels.js?v=7" defer></script>
+
+    <!-- 主应用 -->
+    <script src="app.js?v=8" defer></script>
 
 </body>
 </html>

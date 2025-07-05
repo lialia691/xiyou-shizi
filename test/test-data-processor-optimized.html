@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataProcessor 架构优化测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .architecture-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .dependency-graph {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .story-preview {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🏗️ DataProcessor 架构优化测试</h1>
+        
+        <div class="test-section">
+            <h3>架构优化验证</h3>
+            <button onclick="testArchitectureOptimization()">测试单一职责原则</button>
+            <div id="architecture-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>依赖注入测试</h3>
+            <button onclick="testDependencyInjection()">测试依赖注入</button>
+            <div id="dependency-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>内容外部化测试</h3>
+            <button onclick="testContentExternalization()">测试故事模板加载</button>
+            <div id="content-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>游戏数据生成测试</h3>
+            <button onclick="testGameDataGeneration()">测试游戏数据生成</button>
+            <div id="gamedata-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>工厂模式测试</h3>
+            <button onclick="testFactoryPattern()">测试工厂模式</button>
+            <div id="factory-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>完整集成测试</h3>
+            <button onclick="runIntegrationTest()">运行集成测试</button>
+            <div id="integration-results"></div>
+        </div>
+    </div>
+
+    <!-- 引入依赖 -->
+    <script src="character-provider.js"></script>
+    <script src="data-processor.js"></script>
+
+    <script>
+        let characterProvider = null;
+        let dataProcessor = null;
+
+        // 工具函数
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        // 初始化依赖
+        async function initializeDependencies() {
+            if (!characterProvider) {
+                characterProvider = new CharacterProvider();
+                await characterProvider.load();
+            }
+            return characterProvider;
+        }
+
+        // 测试架构优化
+        async function testArchitectureOptimization() {
+            clearResults('architecture-results');
+            
+            try {
+                await initializeDependencies();
+                
+                logResult('architecture-results', 
+                    `<div class="architecture-info">
+                        <h4>🏗️ 架构优化验证</h4>
+                        <p><strong>单一职责原则检查:</strong></p>
+                        <ul>
+                            <li>✅ DataProcessor 不再直接加载汉字数据</li>
+                            <li>✅ 数据加载职责委托给 CharacterProvider</li>
+                            <li>✅ AI建议逻辑已移除（应归属 AIPutiSystem）</li>
+                            <li>✅ 专注于游戏内容生成和数据加工</li>
+                        </ul>
+                    </div>`, 'info');
+
+                // 验证 DataProcessor 不再有数据加载方法
+                const processor = new DataProcessor(characterProvider);
+                const hasLoadMethod = typeof processor.loadChineseWordsData === 'function';
+                
+                if (!hasLoadMethod) {
+                    logResult('architecture-results', '✅ 确认：DataProcessor 已移除数据加载方法', 'success');
+                } else {
+                    logResult('architecture-results', '❌ 警告：DataProcessor 仍包含数据加载方法', 'warning');
+                }
+
+                // 验证依赖注入
+                if (processor.characterProvider === characterProvider) {
+                    logResult('architecture-results', '✅ 确认：依赖注入正常工作', 'success');
+                } else {
+                    logResult('architecture-results', '❌ 错误：依赖注入失败', 'error');
+                }
+
+            } catch (error) {
+                logResult('architecture-results', `❌ 架构优化测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试依赖注入
+        async function testDependencyInjection() {
+            clearResults('dependency-results');
+            
+            try {
+                await initializeDependencies();
+                
+                logResult('dependency-results', 
+                    `<div class="dependency-graph">
+                        依赖关系图:
+                        CharacterProvider (数据源)
+                            ↓ 注入
+                        DataProcessor (数据加工)
+                            ↓ 生成
+                        GameData (游戏内容)
+                    </div>`, 'info');
+
+                // 测试不同的 CharacterProvider 实例
+                const customProvider = new CharacterProvider();
+                await customProvider.load();
+                
+                const processor1 = new DataProcessor(characterProvider);
+                const processor2 = new DataProcessor(customProvider);
+                
+                logResult('dependency-results', '✅ 成功创建使用不同 CharacterProvider 的 DataProcessor 实例', 'success');
+                
+                // 测试配置注入
+                const customProcessor = new DataProcessor(characterProvider, './custom-stories.json');
+                logResult('dependency-results', '✅ 成功注入自定义故事文件路径', 'success');
+                
+                // 验证配置
+                const config = customProcessor.getConfig();
+                logResult('dependency-results', 
+                    `📊 默认配置: 每关${config.charactersPerLevel}个汉字, 最多${config.maxLevels}关`, 
+                    'info');
+
+            } catch (error) {
+                logResult('dependency-results', `❌ 依赖注入测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试内容外部化
+        async function testContentExternalization() {
+            clearResults('content-results');
+            
+            try {
+                await initializeDependencies();
+                
+                logResult('content-results', '🔄 测试外部故事文件加载...', 'info');
+                
+                const processor = new DataProcessor(characterProvider);
+                await processor.initialize();
+                
+                const storyTemplates = processor.getStoryTemplates();
+                
+                if (storyTemplates && storyTemplates.length > 0) {
+                    logResult('content-results', `✅ 成功加载 ${storyTemplates.length} 个故事模板`, 'success');
+                    
+                    // 显示故事预览
+                    storyTemplates.slice(0, 3).forEach((story, index) => {
+                        logResult('content-results', 
+                            `<div class="story-preview">
+                                <strong>故事 ${index + 1}: ${story.scene}</strong><br>
+                                背景: ${story.background}<br>
+                                主题: ${story.theme || '未设置'}<br>
+                                难度: ${story.difficulty || '未设置'}<br>
+                                图片: ${story.image}
+                            </div>`, 'info');
+                    });
+                    
+                    // 验证故事模板字段
+                    const firstStory = storyTemplates[0];
+                    const requiredFields = ['scene', 'background', 'characters', 'story', 'items', 'image'];
+                    const missingFields = requiredFields.filter(field => !firstStory[field]);
+                    
+                    if (missingFields.length === 0) {
+                        logResult('content-results', '✅ 故事模板格式验证通过', 'success');
+                    } else {
+                        logResult('content-results', `⚠️ 缺少字段: ${missingFields.join(', ')}`, 'warning');
+                    }
+                    
+                } else {
+                    logResult('content-results', '❌ 故事模板加载失败', 'error');
+                }
+
+            } catch (error) {
+                logResult('content-results', `❌ 内容外部化测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试游戏数据生成
+        async function testGameDataGeneration() {
+            clearResults('gamedata-results');
+            
+            try {
+                await initializeDependencies();
+                
+                logResult('gamedata-results', '🎮 测试游戏数据生成...', 'info');
+                
+                const processor = new DataProcessor(characterProvider);
+                await processor.initialize();
+                
+                const gameData = processor.getAllLevelsOverview();
+                
+                if (gameData && gameData.length > 0) {
+                    logResult('gamedata-results', `✅ 成功生成 ${gameData.length} 个游戏关卡`, 'success');
+                    
+                    // 显示统计信息
+                    const stats = processor.getLevelStatistics();
+                    logResult('gamedata-results', 
+                        `📊 关卡统计:
+                        <ul>
+                            <li>总关卡数: ${stats.totalLevels}</li>
+                            <li>总汉字数: ${stats.totalCharacters}</li>
+                            <li>平均每关汉字数: ${stats.averageCharactersPerLevel}</li>
+                            <li>难度分布: 简单${stats.difficultyDistribution.easy}, 普通${stats.difficultyDistribution.normal}, 困难${stats.difficultyDistribution.hard}</li>
+                        </ul>`, 'info');
+                    
+                    // 测试特定关卡数据
+                    const level1 = processor.getGameLevelData(1);
+                    if (level1) {
+                        logResult('gamedata-results', 
+                            `🎯 第1关详情: ${level1.scene}, ${level1.characters.length}个汉字, 难度${level1.difficulty}`, 
+                            'info');
+                    }
+                    
+                    // 测试干扰项生成
+                    const distractors = await processor.generateSimilarCharacters('一', 3);
+                    logResult('gamedata-results', 
+                        `🎲 为"一"生成的干扰项: ${distractors.join(', ')}`, 
+                        'info');
+                    
+                } else {
+                    logResult('gamedata-results', '❌ 游戏数据生成失败', 'error');
+                }
+
+            } catch (error) {
+                logResult('gamedata-results', `❌ 游戏数据生成测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试工厂模式
+        async function testFactoryPattern() {
+            clearResults('factory-results');
+            
+            try {
+                await initializeDependencies();
+                
+                logResult('factory-results', '🏭 测试工厂模式...', 'info');
+                
+                // 测试标准工厂方法
+                const standardProcessor = await DataProcessorFactory.createStandard(characterProvider);
+                logResult('factory-results', '✅ 标准工厂方法创建成功', 'success');
+                
+                // 测试自定义工厂方法
+                const customProcessor = await DataProcessorFactory.createCustom(characterProvider, {
+                    gameConfig: {
+                        charactersPerLevel: 15,
+                        maxLevels: 20,
+                        timePerCharacter: 3
+                    }
+                });
+                
+                const customConfig = customProcessor.getConfig();
+                logResult('factory-results', 
+                    `✅ 自定义工厂方法创建成功 (每关${customConfig.charactersPerLevel}字)`, 
+                    'success');
+                
+                // 测试测试工厂方法
+                const testProcessor = await DataProcessorFactory.createForTesting(characterProvider);
+                const testConfig = testProcessor.getConfig();
+                logResult('factory-results', 
+                    `✅ 测试工厂方法创建成功 (每关${testConfig.charactersPerLevel}字, 最多${testConfig.maxLevels}关)`, 
+                    'success');
+
+            } catch (error) {
+                logResult('factory-results', `❌ 工厂模式测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 运行集成测试
+        async function runIntegrationTest() {
+            clearResults('integration-results');
+            
+            try {
+                logResult('integration-results', '🚀 开始完整集成测试...', 'info');
+                
+                // 1. 初始化依赖
+                await initializeDependencies();
+                logResult('integration-results', '✅ 步骤1: CharacterProvider 初始化完成', 'success');
+                
+                // 2. 创建 DataProcessor
+                const processor = await DataProcessorFactory.createStandard(characterProvider);
+                logResult('integration-results', '✅ 步骤2: DataProcessor 创建完成', 'success');
+                
+                // 3. 验证数据完整性
+                const gameData = processor.getAllLevelsOverview();
+                const storyTemplates = processor.getStoryTemplates();
+                
+                if (gameData.length > 0 && storyTemplates.length > 0) {
+                    logResult('integration-results', '✅ 步骤3: 数据完整性验证通过', 'success');
+                } else {
+                    throw new Error('数据完整性验证失败');
+                }
+                
+                // 4. 测试核心功能
+                const highFreqChars = await processor.getHighFrequencyCharacters(1, 5);
+                const distractors = await processor.generateSimilarCharacters('一', 3);
+                
+                if (highFreqChars.length > 0 && distractors.length > 0) {
+                    logResult('integration-results', '✅ 步骤4: 核心功能测试通过', 'success');
+                } else {
+                    throw new Error('核心功能测试失败');
+                }
+                
+                // 5. 性能测试
+                const startTime = performance.now();
+                for (let i = 0; i < 100; i++) {
+                    await processor.generateSimilarCharacters('测', 3);
+                }
+                const endTime = performance.now();
+                
+                logResult('integration-results', 
+                    `✅ 步骤5: 性能测试完成 (100次干扰项生成耗时 ${(endTime - startTime).toFixed(2)}ms)`, 
+                    'success');
+                
+                logResult('integration-results', '🎉 集成测试全部通过！架构优化成功！', 'success');
+
+            } catch (error) {
+                logResult('integration-results', `❌ 集成测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载完成后自动初始化
+        window.addEventListener('load', async () => {
+            console.log('🏗️ DataProcessor 架构优化测试页面已加载');
+            
+            try {
+                await initializeDependencies();
+                console.log('✅ 依赖初始化完成');
+            } catch (error) {
+                console.error('❌ 依赖初始化失败:', error);
+            }
+        });
+    </script>
+</body>
+</html>

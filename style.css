@@ -35,6 +35,14 @@ header {
     margin: 0;
     font-weight: bold;
 }
+
+.game-subtitle {
+    font-size: 1.1em;
+    color: #666;
+    margin: 8px 0 20px 0;
+    font-weight: normal;
+    font-style: italic;
+}
 header h2#scene-title { /* 更精确的选择器 */
     font-size: 1.4em;
     color: #555;
@@ -70,8 +78,6 @@ main {
     object-fit: cover;
 }
 #character-display {
-    font-size: 90px;
-    font-weight: bold;
     height: 140px;
     width: 140px;
     margin: 0 auto 25px auto;
@@ -80,6 +86,50 @@ main {
     align-items: center;
     border: 3px solid #eee;
     border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#character-text {
+    font-size: 80px;
+    font-weight: bold;
+    color: #d9534f;
+    line-height: 1;
+}
+
+.pinyin-display {
+    font-size: 1.1em;
+    color: #666;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    user-select: none;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    min-width: 60px;
+    text-align: center;
+}
+
+.pinyin-display:hover {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+}
+
+.pinyin-display:active {
+    transform: scale(0.95);
+    background: rgba(102, 126, 234, 0.3);
+}
+
+.pinyin-display.playing {
+    animation: pinyinPulse 0.6s ease-in-out;
+    background: rgba(102, 126, 234, 0.3);
+}
+
+@keyframes pinyinPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 /* 4. 答题与反馈 */
@@ -89,13 +139,84 @@ main {
     gap: 12px;
 }
 .option-btn {
-    padding: 15px;
-    font-size: 1.25em;
+    padding: 12px;
     border: 2px solid #ddd;
     border-radius: 10px;
     background-color: #fdfdfd;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.option-char {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+}
+
+.option-pinyin {
+    font-size: 0.9em;
+    color: #666;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(102, 126, 234, 0.1);
+    transition: all 0.2s ease;
+}
+
+.option-pinyin:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.05);
+}
+
+/* 只显示拼音的选项按钮样式 */
+.pinyin-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 15px;
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+    background-color: #fdfdfd;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 60px;
+}
+
+.pinyin-option:hover:enabled {
+    background-color: #f0f8ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.pinyin-option:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.option-pinyin-only {
+    font-size: 1.2em;
+    color: #333;
+    font-weight: bold;
+}
+
+/* 点击时的音频播放效果 */
+.pinyin-option.playing {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    animation: optionPulse 0.6s ease-in-out;
+}
+
+@keyframes optionPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 .option-btn:hover:enabled {
     background-color: #f0f0f0;
@@ -314,4 +435,120 @@ footer span {
     transform: translateY(-50%);
     right: 20px;
     font-size: 1.5em;
+}
+
+/* 10. AI菩提助手样式 */
+.puti-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: putiGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes putiGlow {
+    0% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); }
+    100% { box-shadow: 0 8px 35px rgba(118, 75, 162, 0.4); }
+}
+
+.puti-avatar {
+    font-size: 3em;
+    animation: putiFloat 2s ease-in-out infinite;
+}
+
+@keyframes putiFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.puti-content {
+    flex: 1;
+    text-align: left;
+}
+
+.puti-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
+    color: #fff;
+}
+
+.puti-advice {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 0.9em;
+    line-height: 1.4;
+    backdrop-filter: blur(10px);
+}
+
+.puti-recommendation {
+    margin-top: 15px;
+}
+
+.puti-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+}
+
+.puti-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* 学习进度指示器 */
+.learning-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #56ab2f 0%, #a8e6cf 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.progress-text {
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .puti-panel {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .puti-content {
+        text-align: center;
+    }
+
+    .puti-avatar {
+        font-size: 2.5em;
+    }
 }
