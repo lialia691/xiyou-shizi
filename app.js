@@ -578,13 +578,14 @@ const App = {
             // 重置游戏状态
             GameState.reset();
 
-            // 初始化语音系统
-            console.log('🔊 正在初始化语音系统...');
-            await initSpeechSystem();
-
-            // 初始化AI菩提系统和数据处理器
+            // 初始化AI菩提系统和数据处理器（包含CharacterProvider）
             console.log('🚀 正在初始化西游识字智能系统...');
             await initializeDataSystem();
+
+            // 初始化语音系统（注入CharacterProvider）
+            console.log('🔊 正在初始化语音系统...');
+            const characterProvider = globalDataProcessor ? globalDataProcessor.characterProvider : null;
+            await initSpeechSystem(characterProvider);
 
             // 更新游戏数据
             console.log('📊 正在获取游戏数据...');
