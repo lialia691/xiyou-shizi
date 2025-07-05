@@ -17,6 +17,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="西游识字">
 
+    <!-- 移动端优化 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- GitHub Pages 缓存控制 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
     <title>西游识字0.2 </title>
     <link rel="stylesheet" href="style.css?v=7">
 </head>
@@ -106,6 +119,9 @@
             </div>
         </div>
     </div>
+
+    <!-- GitHub Pages 移动端修复脚本 (优先加载，不使用defer) -->
+    <script src="github-pages-fix.js?v=1"></script>
 
     <!-- 核心脚本加载 - 按依赖顺序排列 -->
     <!-- 基础系统 -->
