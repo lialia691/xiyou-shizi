@@ -116,34 +116,79 @@ class GitHubPagesFix {
                     console.log('🔊 Web Audio API 已解锁');
                 }
 
-                // 解锁 Speech Synthesis
+                // 强制解锁 Speech Synthesis（移动端专用）
                 if (window.speechSynthesis) {
-                    const utterance = new SpeechSynthesisUtterance('');
-                    utterance.volume = 0;
-                    utterance.rate = 1;
-                    utterance.pitch = 1;
-                    window.speechSynthesis.speak(utterance);
-                    console.log('🎵 Speech Synthesis 已解锁');
+                    // 方法1：静音语音
+                    const utterance1 = new SpeechSynthesisUtterance('');
+                    utterance1.volume = 0;
+                    utterance1.rate = 1;
+                    utterance1.pitch = 1;
+                    window.speechSynthesis.speak(utterance1);
+
+                    // 方法2：短暂的中文语音（移动端更有效）
+                    setTimeout(() => {
+                        const utterance2 = new SpeechSynthesisUtterance('测试');
+                        utterance2.volume = 0.1;
+                        utterance2.rate = 2;
+                        utterance2.lang = 'zh-CN';
+                        window.speechSynthesis.speak(utterance2);
+                    }, 100);
+
+                    console.log('🎵 Speech Synthesis 已强制解锁');
                 }
 
                 this.audioUnlocked = true;
                 console.log('✅ 音频解锁成功');
+
+                // 显示音频已激活的提示
+                if (this.isMobile) {
+                    this.showAudioActivatedNotification();
+                }
 
             } catch (error) {
                 console.warn('⚠️ 音频解锁失败:', error);
             }
         };
 
-        // 监听各种用户交互事件
-        const events = ['touchstart', 'touchend', 'click', 'keydown'];
+        // 监听各种用户交互事件（移动端优化）
+        const events = this.isMobile ?
+            ['touchstart', 'touchend', 'click', 'pointerdown'] :
+            ['click', 'keydown', 'mousedown'];
+
         events.forEach(eventType => {
-            document.addEventListener(eventType, unlockAudio, { 
-                once: true, 
-                passive: true 
+            document.addEventListener(eventType, unlockAudio, {
+                once: false, // 移动端允许多次尝试
+                passive: true
             });
         });
 
-        console.log('👆 用户交互监听器已添加');
+        console.log('👆 用户交互监听器已添加 (移动端优化)');
+    }
+
+    // 显示音频激活通知
+    showAudioActivatedNotification() {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 10000;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        `;
+        notification.textContent = '🔊 音频已激活';
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 2000);
     }
 
     // 修复语音合成问题

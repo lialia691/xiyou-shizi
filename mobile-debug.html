@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>移动端调试 - 西游识字</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: #f5f5f5;
+            font-size: 14px;
+        }
+        
+        .debug-container {
+            max-width: 100%;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .debug-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 2px solid #d9534f;
+            padding-bottom: 5px;
+        }
+        
+        .debug-item {
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .debug-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        
+        .debug-button:active {
+            background: #c9302c;
+            transform: scale(0.98);
+        }
+        
+        .status-good { color: #28a745; }
+        .status-bad { color: #dc3545; }
+        .status-warning { color: #ffc107; }
+        
+        .log-container {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <div class="debug-title">📱 移动端环境检测</div>
+        <div id="device-info"></div>
+    </div>
+    
+    <div class="debug-container">
+        <div class="debug-title">🔊 音频系统测试</div>
+        <button class="debug-button" onclick="testAudio()">测试音频播放</button>
+        <button class="debug-button" onclick="forceActivateAudio()">强制激活音频</button>
+        <div id="audio-status"></div>
+    </div>
+    
+    <div class="debug-container">
+        <div class="debug-title">📊 数据加载测试</div>
+        <button class="debug-button" onclick="testDataLoading()">测试数据加载</button>
+        <button class="debug-button" onclick="loadEmergencyData()">加载紧急数据</button>
+        <div id="data-status"></div>
+    </div>
+    
+    <div class="debug-container">
+        <div class="debug-title">🎮 游戏功能测试</div>
+        <button class="debug-button" onclick="testGameInit()">测试游戏初始化</button>
+        <button class="debug-button" onclick="openMainGame()">打开主游戏</button>
+        <div id="game-status"></div>
+    </div>
+    
+    <div class="debug-container">
+        <div class="debug-title">📝 实时日志</div>
+        <button class="debug-button" onclick="clearLog()">清空日志</button>
+        <div id="log-container" class="log-container"></div>
+    </div>
+
+    <script>
+        let logContainer;
+        
+        // 初始化
+        function init() {
+            logContainer = document.getElementById('log-container');
+            showDeviceInfo();
+            setupConsoleCapture();
+            log('📱 移动端调试页面已加载');
+        }
+        
+        // 显示设备信息
+        function showDeviceInfo() {
+            const info = document.getElementById('device-info');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                             ('ontouchstart' in window) ||
+                             (navigator.maxTouchPoints > 0);
+            
+            const deviceInfo = {
+                '设备类型': isMobile ? '移动设备' : '桌面设备',
+                '用户代理': navigator.userAgent.substring(0, 80) + '...',
+                '触摸支持': 'ontouchstart' in window ? '是' : '否',
+                '最大触摸点': navigator.maxTouchPoints || 0,
+                '语音合成': window.speechSynthesis ? '支持' : '不支持',
+                '屏幕尺寸': `${window.innerWidth}x${window.innerHeight}`,
+                '设备像素比': window.devicePixelRatio || 1,
+                '当前协议': window.location.protocol,
+                '当前域名': window.location.hostname,
+                '网络状态': navigator.onLine ? '在线' : '离线'
+            };
+            
+            info.innerHTML = Object.entries(deviceInfo).map(([key, value]) => 
+                `<div class="debug-item"><strong>${key}:</strong> ${value}</div>`
+            ).join('');
+        }
+        
+        // 捕获控制台输出
+        function setupConsoleCapture() {
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                log('LOG: ' + args.join(' '));
+            };
+            
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                log('ERROR: ' + args.join(' '), 'error');
+            };
+            
+            console.warn = function(...args) {
+                originalWarn.apply(console, args);
+                log('WARN: ' + args.join(' '), 'warn');
+            };
+        }
+        
+        // 记录日志
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            if (type === 'error') logEntry.style.color = '#ff6b6b';
+            else if (type === 'warn') logEntry.style.color = '#feca57';
+            else logEntry.style.color = '#0f0';
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        // 清空日志
+        function clearLog() {
+            logContainer.innerHTML = '';
+        }
+        
+        // 测试音频
+        async function testAudio() {
+            const status = document.getElementById('audio-status');
+            status.innerHTML = '<div class="debug-item status-warning">正在测试音频...</div>';
+            
+            try {
+                if (!window.speechSynthesis) {
+                    throw new Error('浏览器不支持语音合成');
+                }
+                
+                log('🔊 开始音频测试');
+                
+                const utterance = new SpeechSynthesisUtterance('你好');
+                utterance.lang = 'zh-CN';
+                utterance.volume = 0.8;
+                utterance.rate = 0.8;
+                
+                utterance.onstart = () => {
+                    log('✅ 音频播放开始');
+                    status.innerHTML = '<div class="debug-item status-good">✅ 音频播放成功！</div>';
+                };
+                
+                utterance.onend = () => {
+                    log('✅ 音频播放结束');
+                };
+                
+                utterance.onerror = (event) => {
+                    log(`❌ 音频播放失败: ${event.error}`, 'error');
+                    status.innerHTML = `<div class="debug-item status-bad">❌ 音频播放失败: ${event.error}</div>`;
+                };
+                
+                window.speechSynthesis.speak(utterance);
+                
+            } catch (error) {
+                log(`❌ 音频测试异常: ${error.message}`, 'error');
+                status.innerHTML = `<div class="debug-item status-bad">❌ 音频测试失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 强制激活音频
+        function forceActivateAudio() {
+            log('🔧 强制激活音频上下文');
+            
+            try {
+                // 激活 Web Audio API
+                if (window.AudioContext || window.webkitAudioContext) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    const audioContext = new AudioContextClass();
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                        log('🔊 Web Audio API 已激活');
+                    }
+                }
+                
+                // 激活 Speech Synthesis
+                if (window.speechSynthesis) {
+                    const utterance = new SpeechSynthesisUtterance('');
+                    utterance.volume = 0;
+                    window.speechSynthesis.speak(utterance);
+                    log('🎵 Speech Synthesis 已激活');
+                }
+                
+                document.getElementById('audio-status').innerHTML = 
+                    '<div class="debug-item status-good">✅ 音频上下文已强制激活</div>';
+                    
+            } catch (error) {
+                log(`❌ 音频激活失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试数据加载
+        async function testDataLoading() {
+            const status = document.getElementById('data-status');
+            status.innerHTML = '<div class="debug-item status-warning">正在测试数据加载...</div>';
+            
+            try {
+                log('📊 开始数据加载测试');
+                
+                // 测试加载 JSON 文件
+                const response = await fetch('chinaword2500.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ 成功加载汉字数据: ${data.length} 条记录`);
+                    status.innerHTML = `<div class="debug-item status-good">✅ 数据加载成功: ${data.length} 条记录</div>`;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                log(`❌ 数据加载失败: ${error.message}`, 'error');
+                status.innerHTML = `<div class="debug-item status-bad">❌ 数据加载失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 加载紧急数据
+        function loadEmergencyData() {
+            log('🚨 加载紧急备用数据');
+            
+            const emergencyData = [
+                { char: "山", pinyin: "shān" },
+                { char: "水", pinyin: "shuǐ" },
+                { char: "花", pinyin: "huā" }
+            ];
+            
+            window.emergencyGameData = emergencyData;
+            
+            document.getElementById('data-status').innerHTML = 
+                `<div class="debug-item status-good">✅ 紧急数据已加载: ${emergencyData.length} 个汉字</div>`;
+                
+            log(`✅ 紧急数据加载完成: ${emergencyData.length} 个汉字`);
+        }
+        
+        // 测试游戏初始化
+        function testGameInit() {
+            log('🎮 测试游戏初始化');
+            
+            const status = document.getElementById('game-status');
+            
+            // 检查必要的全局变量和函数
+            const checks = [
+                { name: 'gameData', exists: typeof window.gameData !== 'undefined' },
+                { name: 'speechSynthesis', exists: typeof window.speechSynthesis !== 'undefined' },
+                { name: 'App', exists: typeof window.App !== 'undefined' },
+                { name: 'UI', exists: typeof window.UI !== 'undefined' },
+                { name: 'GameLogic', exists: typeof window.GameLogic !== 'undefined' }
+            ];
+            
+            const results = checks.map(check => 
+                `<div class="debug-item ${check.exists ? 'status-good' : 'status-bad'}">
+                    ${check.exists ? '✅' : '❌'} ${check.name}: ${check.exists ? '已加载' : '未加载'}
+                </div>`
+            ).join('');
+            
+            status.innerHTML = results;
+            
+            checks.forEach(check => {
+                log(`${check.exists ? '✅' : '❌'} ${check.name}: ${check.exists ? '已加载' : '未加载'}`);
+            });
+        }
+        
+        // 打开主游戏
+        function openMainGame() {
+            log('🚀 尝试打开主游戏');
+            window.open('index.html', '_blank');
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

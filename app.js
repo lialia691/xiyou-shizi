@@ -186,10 +186,26 @@ const UI = {
         console.log('🗺️ 正在渲染路线图...');
         this.levelNodesContainer.innerHTML = '';
 
+        // 紧急修复：如果数据为空，尝试重新获取
         if (!gameData || gameData.length === 0) {
-            console.error('❌ 无法渲染路线图：游戏数据为空');
-            this.levelNodesContainer.innerHTML = '<div style="text-align: center; color: red;">游戏数据加载失败，请刷新页面重试</div>';
-            return;
+            console.warn('⚠️ 游戏数据为空，尝试重新获取...');
+
+            // 尝试获取备用数据
+            try {
+                gameData = this.getEmergencyGameData();
+                console.log(`🔄 使用紧急备用数据: ${gameData.length} 个关卡`);
+            } catch (error) {
+                console.error('❌ 紧急数据获取失败:', error);
+                this.levelNodesContainer.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="color: red; margin-bottom: 10px;">数据加载失败</div>
+                        <button onclick="location.reload()" style="padding: 10px 20px; background: #d9534f; color: white; border: none; border-radius: 5px;">
+                            重新加载
+                        </button>
+                    </div>
+                `;
+                return;
+            }
         }
 
         console.log(`🗺️ 渲染 ${gameData.length} 个关卡节点`);
@@ -218,6 +234,42 @@ const UI = {
 
             this.levelNodesContainer.appendChild(node);
         });
+    },
+
+    // 紧急备用数据
+    getEmergencyGameData() {
+        return [
+            {
+                scene: "花果山",
+                image: "images/huaguoshan.jpg",
+                characters: [
+                    { char: "山", pinyin: "shān" },
+                    { char: "水", pinyin: "shuǐ" },
+                    { char: "花", pinyin: "huā" }
+                ],
+                item: { name: "金箍棒", description: "孙悟空的神兵利器" }
+            },
+            {
+                scene: "东海龙宫",
+                image: "images/huaguoshan.jpg",
+                characters: [
+                    { char: "龙", pinyin: "lóng" },
+                    { char: "海", pinyin: "hǎi" },
+                    { char: "宫", pinyin: "gōng" }
+                ],
+                item: { name: "龙鳞", description: "东海龙王的鳞片" }
+            },
+            {
+                scene: "天庭",
+                image: "images/huaguoshan.jpg",
+                characters: [
+                    { char: "天", pinyin: "tiān" },
+                    { char: "云", pinyin: "yún" },
+                    { char: "仙", pinyin: "xiān" }
+                ],
+                item: { name: "仙桃", description: "王母娘娘的蟠桃" }
+            }
+        ];
     },
 
     updateFeedbackMessage(message, color = '#333') {
@@ -637,21 +689,37 @@ const App = {
 
             // 初始化AI菩提系统和数据处理器（包含CharacterProvider）
             console.log('🚀 正在初始化西游识字智能系统...');
-            await initializeDataSystem();
+            let dataSystemInitialized = false;
+            try {
+                await initializeDataSystem();
+                dataSystemInitialized = true;
+            } catch (error) {
+                console.warn('⚠️ 数据系统初始化失败，将使用备用数据:', error);
+            }
 
             // 初始化语音系统（注入CharacterProvider）
             console.log('🔊 正在初始化语音系统...');
-            const characterProvider = globalDataProcessor ? globalDataProcessor.characterProvider : null;
-            await initSpeechSystem(characterProvider);
+            let characterProvider = null;
+            try {
+                characterProvider = globalDataProcessor ? globalDataProcessor.characterProvider : null;
+                await initSpeechSystem(characterProvider);
+            } catch (error) {
+                console.warn('⚠️ 语音系统初始化失败:', error);
+            }
 
             // 更新游戏数据
             console.log('📊 正在获取游戏数据...');
-            gameData = getGameData();
-            console.log(`📊 获取到 ${gameData.length} 个关卡数据`);
+            try {
+                gameData = getGameData();
+                console.log(`📊 获取到 ${gameData.length} 个关卡数据`);
+            } catch (error) {
+                console.warn('⚠️ 游戏数据获取失败，使用紧急备用数据:', error);
+                gameData = UI.getEmergencyGameData();
+            }
 
-            if (gameData.length === 0) {
-                console.error('❌ 游戏数据为空！');
-                throw new Error('游戏数据加载失败');
+            if (!gameData || gameData.length === 0) {
+                console.warn('⚠️ 所有数据源都失败，使用最小化数据集');
+                gameData = UI.getEmergencyGameData();
             }
 
             gameData.forEach(level => {
