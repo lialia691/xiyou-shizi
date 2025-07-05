@@ -2,6 +2,13 @@
 
 // ===== 工具函数 =====
 const Utils = {
+    // 检测是否为移动设备
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               ('ontouchstart' in window) ||
+               (navigator.maxTouchPoints > 0);
+    },
+
     // 辅助函数：同时绑定 click 和 touchstart，并添加日志
     addSafeEventListener(element, handler) {
         let hasFired = false;
@@ -10,20 +17,28 @@ const Utils = {
         const eventHandler = (event) => {
             if (hasFired) return;
 
-            event.preventDefault();
+            // 移动端不阻止默认行为，避免影响滚动
+            if (!Utils.isMobileDevice()) {
+                event.preventDefault();
+            }
             event.stopPropagation();
 
-            console.log(`事件触发成功! 元素:`, element);
+            console.log(`事件触发成功! 元素:`, element, '事件类型:', event.type);
 
             hasFired = true;
             handler(event);
 
             clearTimeout(timer);
-            timer = setTimeout(() => { hasFired = false; }, 500);
+            timer = setTimeout(() => { hasFired = false; }, 300);
         };
 
-        element.addEventListener('touchstart', eventHandler, { passive: false });
-        element.addEventListener('click', eventHandler);
+        // 移动端优先使用 touchend，桌面端使用 click
+        if (Utils.isMobileDevice()) {
+            element.addEventListener('touchend', eventHandler, { passive: true });
+            element.addEventListener('click', eventHandler);
+        } else {
+            element.addEventListener('click', eventHandler);
+        }
     },
 
     // 异步延迟函数
@@ -527,6 +542,11 @@ const EventHandler = {
         const clickedPinyin = clickedButton.dataset.pinyin;
         if (!clickedPinyin) return;
 
+        // 移动端音频激活
+        if (Utils.isMobileDevice()) {
+            await App.activateAudioContext();
+        }
+
         // 检查是否正在播放
         if (speechSystem && speechSystem.isPlaying) {
             console.log('⏸️ 语音正在播放中，跳过新的播放请求');
@@ -539,10 +559,19 @@ const EventHandler = {
     // 处理关卡节点点击
     handleLevelNodeClick(event) {
         const levelNode = event.target.closest('.level-node');
-        if (!levelNode || levelNode.classList.contains('locked')) return;
+        if (!levelNode || levelNode.classList.contains('locked')) {
+            console.log('🔒 关卡节点被锁定或无效:', levelNode);
+            return;
+        }
 
         const levelIndex = parseInt(levelNode.dataset.levelIndex, 10);
+        console.log('🎯 点击关卡节点:', levelIndex, levelNode);
+
         if (!isNaN(levelIndex)) {
+            // 移动端音频激活
+            if (Utils.isMobileDevice()) {
+                App.activateAudioContext();
+            }
             GameLogic.startLevel(levelIndex);
         }
     },
@@ -564,12 +593,40 @@ const EventHandler = {
     handlePutiClick(event) {
         const startLearningBtn = event.target.closest('#start-learning-btn');
         if (startLearningBtn) {
+            console.log('🎯 点击开始学习按钮');
+
+            // 移动端音频激活
+            if (Utils.isMobileDevice()) {
+                App.activateAudioContext();
+            }
+
             PutiSystem.handleStartLearning();
         }
     }
 };
 // ===== 主应用模块 =====
 const App = {
+    audioActivated: false, // 音频是否已激活
+
+    // 激活移动端音频上下文
+    async activateAudioContext() {
+        if (this.audioActivated || !Utils.isMobileDevice()) return;
+
+        try {
+            // 创建一个静音的音频上下文来激活
+            if (speechSystem && speechSystem.speechSynthesis) {
+                const utterance = new SpeechSynthesisUtterance('');
+                utterance.volume = 0;
+                speechSystem.speechSynthesis.speak(utterance);
+
+                this.audioActivated = true;
+                console.log('📱 移动端音频上下文已激活');
+            }
+        } catch (error) {
+            console.warn('⚠️ 音频上下文激活失败:', error);
+        }
+    },
+
     // 初始化应用
     async init() {
         try {
@@ -611,9 +668,30 @@ const App = {
             // 初始化事件处理器
             EventHandler.init();
 
+            // 移动端音频激活监听
+            if (Utils.isMobileDevice()) {
+                document.addEventListener('touchstart', () => {
+                    this.activateAudioContext();
+                }, { once: true, passive: true });
+
+                document.addEventListener('click', () => {
+                    this.activateAudioContext();
+                }, { once: true });
+            }
+
             // 显示主界面
             UI.showMapView();
             await PutiSystem.updatePanel();
+
+            // 移动端调试信息
+            if (Utils.isMobileDevice()) {
+                console.log('📱 移动端设备检测信息:');
+                console.log('- User Agent:', navigator.userAgent);
+                console.log('- Touch Support:', 'ontouchstart' in window);
+                console.log('- Max Touch Points:', navigator.maxTouchPoints);
+                console.log('- Speech Synthesis:', !!window.speechSynthesis);
+                console.log('- Audio Activated:', this.audioActivated);
+            }
 
             console.log('✅ 西游识字游戏初始化完成！');
 
