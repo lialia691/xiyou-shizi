@@ -1,0 +1,433 @@
+/* style.css - 最终优化版 */
+
+/* 1. 全局与基础布局 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f4f6f9; /* 稍微调整背景色，更柔和 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px; /* 在小屏幕上给body一点边距 */
+    box-sizing: border-box; /* 让padding表现更符合直觉 */
+}
+
+#app-container {
+    width: 100%;
+    max-width: 420px; /* 稍微加宽一点点 */
+    background: white;
+    border-radius: 16px; /* 圆角更明显一点 */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    padding: 25px;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+/* 2. 头部与标题 */
+header {
+    margin-bottom: 20px;
+}
+.game-title {
+    font-size: 2.2em;
+    color: #d9534f;
+    margin: 0;
+    font-weight: bold;
+}
+header h2#scene-title { /* 更精确的选择器 */
+    font-size: 1.4em;
+    color: #555;
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-weight: normal; /* 关卡标题不用加粗 */
+}
+
+/* 3. 主要内容区 */
+main {
+    display: flex;             /* 【核心】启用 Flexbox 布局！ */
+    justify-content: space-between; /* 让子项之间有平均的间距 */
+    align-items: center;       /* 垂直居中对齐 */
+    width: 100%;               /* 确保 main 占满容器宽度 */
+    margin-bottom: 20px;
+    position: relative;
+    box-sizing: border-box;
+}
+#main-content-wrapper {
+    flex-grow: 1; /* 【核心】让中间内容区域占据所有剩余空间 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0; /* 防止内容过大时撑破布局 */
+}
+#scene-image {
+    display: block;          /* 确保它是块级元素 (用于居中) */
+    margin: 0 auto 25px;   /* 实现完美的水平居中 */
+    width: 70%;              /* 这是你选择的完美尺寸！ */
+    max-width: 300px;        /* 同时限制最大宽度 */
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
+}
+#character-display {
+    font-size: 90px;
+    font-weight: bold;
+    height: 140px;
+    width: 140px;
+    margin: 0 auto 25px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 3px solid #eee;
+    border-radius: 12px;
+}
+
+/* 4. 答题与反馈 */
+#quiz-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.option-btn {
+    padding: 15px;
+    font-size: 1.25em;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    background-color: #fdfdfd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.option-btn:hover:enabled {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+    transform: translateY(-2px);
+}
+.option-btn:active:enabled {
+    transform: translateY(0);
+}
+.option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.correct-option {
+    background-color: #28a745 !important;
+    color: white;
+    border-color: #28a745 !important;
+}
+.wrong-option {
+    background-color: #dc3545 !important;
+    color: white;
+    border-color: #dc3545 !important;
+}
+#feedback-message {
+    margin-top: 20px;
+    font-size: 1.1em;
+    height: 25px;
+    font-weight: bold;
+}
+
+/* 5. 页脚 */
+footer {
+    font-size: 1.2em;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 5px 0 5px; /* 给页脚一点内边距 */
+    border-top: 1px solid #f0f0f0; /* 加一条分割线 */
+}
+footer span {
+    margin: 0 5px;
+}
+
+
+/* 6. 动画效果 */
+@keyframes wrong-answer-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+.shake {
+    animation: wrong-answer-shake 0.3s ease-in-out;
+}
+@keyframes correct-answer-animation {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+.correct {
+    animation: correct-answer-animation 0.3s ease-in-out;
+}
+
+/* 7. 弹窗样式 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+.modal-content h2 {
+    font-size: 2em;
+    color: #FFD700;
+    margin-top: 0;
+}
+.modal-content p {
+    font-size: 1.2em;
+    color: #555;
+}
+#continue-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.2em;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+.fail-modal {
+    border: 3px solid #dc3545;
+}
+.fail-modal h2 {
+    color: #dc3545;
+}
+#retry-btn {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.2em;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.hidden {
+    display: none !important;
+}
+
+/* 8.【重大升级】两侧诗句的新样式 */
+
+.side-text {
+    /* 保留这些字体和外观样式 */
+    font-family: 'Ma Shan Zheng', cursive;
+    writing-mode: vertical-rl;
+    font-size: 1.8em;
+    color: #000;
+    opacity: 0.9;
+    letter-spacing: 0.2em;
+    -webkit-text-stroke: 0.5px #000;
+    user-select: none;
+
+    /* 【新增】让诗句本身不被压缩 */
+    flex-shrink: 0;
+    padding: 20px 5px; /* 给诗句上下一点空间，左右一点边距 */
+}
+
+
+/* 【关键】新的响应式调整 */
+@media (max-width: 480px) {
+    /* 【修改】在小屏幕上，减小 main 的内边距 */
+    main {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+    .side-text {
+     font-size: 1.3em; /* 缩小字体 (保留) */
+        
+        /* 【修改】调整诗句的位置，让它更贴近容器边缘 */
+    left: 8px; 
+    right: 8px;
+  }
+    
+    /* 这里的 #scene-image 宽度调整可以移除了，
+       因为它现在会自动适应父容器的内边距，更智能！*/
+    /* #scene-image {
+         width: 75%; 
+    } */
+}
+
+/* 9. 新增的路线图样式 */
+#route-map-view {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    padding: 20px;
+}
+
+#level-nodes-container {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* 节点之间的间距 */
+}
+
+.level-node {
+    padding: 20px 40px;
+    border: 3px solid #ccc;
+    border-radius: 12px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #888;
+    background-color: #f0f0f0;
+    cursor: not-allowed; /* 默认是不可点击状态 */
+    position: relative;
+    transition: all 0.3s ease;
+    width: 80%;
+    max-width: 300px;
+}
+
+.level-node.unlocked {
+    border-color: #d9534f;
+    color: #d9534f;
+    background-color: #fff;
+    cursor: pointer; /* 解锁后可以点击 */
+    box-shadow: 0 4px 15px rgba(217, 83, 79, 0.2);
+}
+
+.level-node.unlocked:hover {
+    transform: translateY(-5px);
+}
+
+.level-node.completed {
+    border-color: #4CAF50;
+    color: #4CAF50;
+    background-color: #f2fff2;
+    cursor: pointer; /* 已通关的也可以再次进入 */
+}
+
+.level-node .status-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 20px;
+    font-size: 1.5em;
+}
+
+/* 10. AI菩提助手样式 */
+.puti-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: putiGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes putiGlow {
+    0% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); }
+    100% { box-shadow: 0 8px 35px rgba(118, 75, 162, 0.4); }
+}
+
+.puti-avatar {
+    font-size: 3em;
+    animation: putiFloat 2s ease-in-out infinite;
+}
+
+@keyframes putiFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.puti-content {
+    flex: 1;
+    text-align: left;
+}
+
+.puti-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
+    color: #fff;
+}
+
+.puti-advice {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 0.9em;
+    line-height: 1.4;
+    backdrop-filter: blur(10px);
+}
+
+.puti-recommendation {
+    margin-top: 15px;
+}
+
+.puti-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+}
+
+.puti-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* 学习进度指示器 */
+.learning-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #56ab2f 0%, #a8e6cf 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.progress-text {
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .puti-panel {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .puti-content {
+        text-align: center;
+    }
+
+    .puti-avatar {
+        font-size: 2.5em;
+    }
+}
