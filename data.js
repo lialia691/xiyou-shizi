@@ -28,11 +28,26 @@ async function initializeDataSystem() {
 
 // 动态获取游戏关卡数据
 function getGameData() {
-    if (dataProcessor && dataProcessor.initialized) {
-        return dataProcessor.gameData;
+    // 如果已经有缓存的数据且数量足够，直接返回
+    if (gameData && gameData.length >= 15) {
+        console.log(`🎮 使用缓存的关卡数据: ${gameData.length} 个关卡`);
+        return gameData;
     }
+
+    if (dataProcessor && dataProcessor.initialized) {
+        const data = dataProcessor.gameData;
+        if (data && data.length > 0) {
+            gameData = data; // 缓存数据
+            console.log(`🎯 使用AI菩提系统数据: ${data.length} 个关卡`);
+            return data;
+        }
+    }
+
     // 返回备用数据
-    return getBackupGameData();
+    const backupData = getBackupGameData();
+    gameData = backupData; // 缓存数据
+    console.log(`🔄 使用备用关卡数据: ${backupData.length} 个关卡`);
+    return backupData;
 }
 
 // 获取指定关卡数据
@@ -168,4 +183,4 @@ function getBackupGameData() {
 }
 
 // 兼容性：保持原有的 gameData 变量
-let gameData = getBackupGameData();
+let gameData = [];
