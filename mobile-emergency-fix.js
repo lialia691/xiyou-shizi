@@ -10,11 +10,10 @@
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                      ('ontouchstart' in window) ||
                      (navigator.maxTouchPoints > 0);
-    
-    if (!isMobile) {
-        console.log('💻 非移动设备，跳过移动端修复');
-        return;
-    }
+
+    // 强制在所有设备上运行修复（调试用）
+    console.log(`📱 设备检测: ${isMobile ? '移动设备' : '桌面设备'}`);
+    console.log('🔧 强制应用紧急修复（所有设备）...');
     
     console.log('📱 检测到移动设备，应用紧急修复...');
     
@@ -185,12 +184,27 @@
     
     // 检查并修复卡住的界面
     function checkAndFixStuckInterface() {
-        setTimeout(() => {
-            const levelNodesContainer = document.getElementById('level-nodes-container');
-            if (levelNodesContainer && levelNodesContainer.children.length === 0) {
-                console.log('🚨 检测到界面卡住，应用紧急修复...');
-                loadEmergencyData();
-                
+        // 立即检查一次
+        performInterfaceFix();
+
+        // 然后定期检查
+        setTimeout(performInterfaceFix, 1000);
+        setTimeout(performInterfaceFix, 3000);
+        setTimeout(performInterfaceFix, 5000);
+    }
+
+    function performInterfaceFix() {
+        console.log('🔍 检查界面状态...');
+
+        const levelNodesContainer = document.getElementById('level-nodes-container');
+        const errorMessage = document.querySelector('.error-message');
+
+        // 检查是否有错误消息或空的关卡容器
+        if ((levelNodesContainer && levelNodesContainer.children.length === 0) || errorMessage) {
+            console.log('🚨 检测到界面问题，应用紧急修复...');
+            loadEmergencyData();
+
+            if (levelNodesContainer) {
                 // 强制显示关卡节点
                 levelNodesContainer.innerHTML = `
                     <div class="level-node unlocked" data-level-index="0" style="
@@ -201,42 +215,90 @@
                         margin: 10px 0;
                         cursor: pointer;
                         position: relative;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     ">
-                        花果山
+                        🏔️ 花果山
                         <span class="status-icon" style="
                             position: absolute;
                             right: 15px;
                             top: 50%;
                             transform: translateY(-50%);
+                            font-size: 18px;
                         ">▶️</span>
                     </div>
+                    <div class="level-node locked" data-level-index="1" style="
+                        padding: 15px 30px;
+                        border: 3px solid #ccc;
+                        border-radius: 12px;
+                        background: #f5f5f5;
+                        margin: 10px 0;
+                        cursor: not-allowed;
+                        position: relative;
+                        opacity: 0.6;
+                    ">
+                        🌊 东海龙宫
+                        <span class="status-icon" style="
+                            position: absolute;
+                            right: 15px;
+                            top: 50%;
+                            transform: translateY(-50%);
+                        ">🔒</span>
+                    </div>
                 `;
-                
+
                 // 添加点击事件
-                const node = levelNodesContainer.querySelector('.level-node');
+                const node = levelNodesContainer.querySelector('.level-node[data-level-index="0"]');
                 if (node) {
                     node.addEventListener('click', () => {
+                        console.log('🎮 点击花果山关卡');
                         forceAudioActivation();
+                        showNotification('🎮 进入花果山', '#4CAF50');
+
+                        // 尝试启动游戏
                         if (window.GameLogic && window.GameLogic.startLevel) {
                             window.GameLogic.startLevel(0);
+                        } else if (window.startLevel) {
+                            window.startLevel(0);
+                        } else {
+                            // 手动触发游戏开始
+                            const startButton = document.querySelector('#start-learning-btn');
+                            if (startButton) {
+                                startButton.click();
+                            }
                         }
                     });
                 }
-                
+
                 showNotification('🔧 界面已修复', '#9C27B0');
             }
-        }, 3000); // 3秒后检查
+
+            // 隐藏错误消息
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+            }
+        }
     }
     
     // 初始化
     function init() {
+        console.log('🚀 开始初始化紧急修复...');
+
+        // 立即显示修复状态
+        showNotification('🔧 紧急修复启动', '#2196F3');
+
         addInteractionListeners();
         checkAndFixStuckInterface();
-        
+
         // 立即尝试加载紧急数据
         loadEmergencyData();
-        
+
         console.log('✅ 移动端紧急修复初始化完成');
+
+        // 5秒后再次强制检查
+        setTimeout(() => {
+            console.log('🔄 5秒后强制检查...');
+            performInterfaceFix();
+        }, 5000);
     }
     
     // 页面加载完成后初始化
