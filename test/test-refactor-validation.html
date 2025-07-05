@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重构验证测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .test-title {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 4px solid #2196F3;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #FFC107;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🔄 重构验证测试</h1>
+        
+        <div class="test-section">
+            <h3>📋 测试概述</h3>
+            <p>验证 data.js 合并到 data-processor.js 后的功能完整性</p>
+            <button onclick="runAllTests()">运行所有测试</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 函数存在性测试</h3>
+            <button onclick="testFunctionExistence()">测试函数是否存在</button>
+            <div id="function-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 数据系统初始化测试</h3>
+            <button onclick="testDataSystemInitialization()">测试数据系统初始化</button>
+            <div id="init-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 游戏数据获取测试</h3>
+            <button onclick="testGameDataRetrieval()">测试游戏数据获取</button>
+            <div id="data-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 AI系统集成测试</h3>
+            <button onclick="testAISystemIntegration()">测试AI系统集成</button>
+            <div id="ai-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 备用数据生成测试</h3>
+            <button onclick="testBackupDataGeneration()">测试备用数据生成</button>
+            <div id="backup-results"></div>
+        </div>
+    </div>
+
+    <!-- 引入所有必要的脚本 -->
+    <script src="speech-system.js"></script>
+    <script src="character-provider.js"></script>
+    <script src="ai-puti-system.js"></script>
+    <script src="user-data-manager.js"></script>
+    <script src="review-scheduler.js"></script>
+    <script src="data-processor.js"></script>
+    <script src="generate-levels.js"></script>
+
+    <script>
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+            container.appendChild(resultDiv);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        // 测试函数存在性
+        function testFunctionExistence() {
+            clearResults('function-results');
+            logResult('function-results', '🔍 检查重构后的函数是否存在...', 'info');
+            
+            const requiredFunctions = [
+                'initializeDataSystem',
+                'getGameData', 
+                'getLevelData',
+                'getBackupGameData',
+                'getPutiAdvice',
+                'getPutiRecommendation',
+                'recordLearningResult'
+            ];
+
+            let allExists = true;
+            requiredFunctions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    logResult('function-results', `✅ ${funcName} 函数存在`, 'success');
+                } else {
+                    logResult('function-results', `❌ ${funcName} 函数不存在`, 'error');
+                    allExists = false;
+                }
+            });
+
+            if (allExists) {
+                logResult('function-results', '🎉 所有必需函数都存在！', 'success');
+            } else {
+                logResult('function-results', '⚠️ 部分函数缺失', 'warning');
+            }
+        }
+
+        // 测试数据系统初始化
+        async function testDataSystemInitialization() {
+            clearResults('init-results');
+            logResult('init-results', '🚀 测试数据系统初始化...', 'info');
+            
+            try {
+                const result = await initializeDataSystem();
+                if (result) {
+                    logResult('init-results', '✅ 数据系统初始化成功', 'success');
+                    
+                    // 检查全局变量
+                    if (window.aiPutiSystem) {
+                        logResult('init-results', '✅ AI菩提系统全局变量已设置', 'success');
+                    } else {
+                        logResult('init-results', '⚠️ AI菩提系统全局变量未设置', 'warning');
+                    }
+                } else {
+                    logResult('init-results', '⚠️ 数据系统初始化失败，使用备用数据', 'warning');
+                }
+            } catch (error) {
+                logResult('init-results', `❌ 初始化过程中出现错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试游戏数据获取
+        function testGameDataRetrieval() {
+            clearResults('data-results');
+            logResult('data-results', '📊 测试游戏数据获取...', 'info');
+            
+            try {
+                const gameData = getGameData();
+                if (gameData && gameData.length > 0) {
+                    logResult('data-results', `✅ 成功获取 ${gameData.length} 个关卡数据`, 'success');
+                    
+                    // 测试第一关数据
+                    const firstLevel = gameData[0];
+                    if (firstLevel.characters && firstLevel.characters.length > 0) {
+                        logResult('data-results', `✅ 第一关包含 ${firstLevel.characters.length} 个汉字`, 'success');
+                        logResult('data-results', `📝 第一关场景: ${firstLevel.scene}`, 'info');
+                    } else {
+                        logResult('data-results', '❌ 第一关缺少汉字数据', 'error');
+                    }
+                    
+                    // 测试 getLevelData 函数
+                    const levelData = getLevelData(1);
+                    if (levelData) {
+                        logResult('data-results', '✅ getLevelData 函数工作正常', 'success');
+                    } else {
+                        logResult('data-results', '❌ getLevelData 函数返回空值', 'error');
+                    }
+                } else {
+                    logResult('data-results', '❌ 未能获取游戏数据', 'error');
+                }
+            } catch (error) {
+                logResult('data-results', `❌ 数据获取过程中出现错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试AI系统集成
+        function testAISystemIntegration() {
+            clearResults('ai-results');
+            logResult('ai-results', '🎯 测试AI系统集成...', 'info');
+            
+            try {
+                // 测试 getPutiAdvice
+                if (typeof getPutiAdvice === 'function') {
+                    const advice = getPutiAdvice();
+                    logResult('ai-results', `✅ getPutiAdvice 返回 ${advice.length} 条建议`, 'success');
+                } else {
+                    logResult('ai-results', '❌ getPutiAdvice 函数不存在', 'error');
+                }
+                
+                // 测试 getPutiRecommendation
+                if (typeof getPutiRecommendation === 'function') {
+                    getPutiRecommendation().then(recommendation => {
+                        if (recommendation) {
+                            logResult('ai-results', '✅ getPutiRecommendation 返回推荐内容', 'success');
+                        } else {
+                            logResult('ai-results', '⚠️ getPutiRecommendation 返回空值', 'warning');
+                        }
+                    });
+                } else {
+                    logResult('ai-results', '❌ getPutiRecommendation 函数不存在', 'error');
+                }
+                
+                // 测试 recordLearningResult
+                if (typeof recordLearningResult === 'function') {
+                    recordLearningResult('test', true, 1000);
+                    logResult('ai-results', '✅ recordLearningResult 函数可调用', 'success');
+                } else {
+                    logResult('ai-results', '❌ recordLearningResult 函数不存在', 'error');
+                }
+            } catch (error) {
+                logResult('ai-results', `❌ AI系统测试过程中出现错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试备用数据生成
+        function testBackupDataGeneration() {
+            clearResults('backup-results');
+            logResult('backup-results', '🔄 测试备用数据生成...', 'info');
+            
+            try {
+                const backupData = getBackupGameData();
+                if (backupData && backupData.length > 0) {
+                    logResult('backup-results', `✅ 成功生成 ${backupData.length} 个备用关卡`, 'success');
+                    
+                    // 检查第一关是否解锁
+                    if (backupData[0].unlocked) {
+                        logResult('backup-results', '✅ 第一关已正确设置为解锁状态', 'success');
+                    } else {
+                        logResult('backup-results', '⚠️ 第一关未设置为解锁状态', 'warning');
+                    }
+                    
+                    // 检查数据结构
+                    const firstLevel = backupData[0];
+                    const requiredFields = ['level', 'scene', 'characters', 'item'];
+                    let structureValid = true;
+                    
+                    requiredFields.forEach(field => {
+                        if (firstLevel[field]) {
+                            logResult('backup-results', `✅ 包含必需字段: ${field}`, 'success');
+                        } else {
+                            logResult('backup-results', `❌ 缺少必需字段: ${field}`, 'error');
+                            structureValid = false;
+                        }
+                    });
+                    
+                    if (structureValid) {
+                        logResult('backup-results', '🎉 备用数据结构完整！', 'success');
+                    }
+                } else {
+                    logResult('backup-results', '❌ 备用数据生成失败', 'error');
+                }
+            } catch (error) {
+                logResult('backup-results', `❌ 备用数据生成过程中出现错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            logResult('function-results', '🚀 开始运行完整测试套件...', 'info');
+            
+            testFunctionExistence();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testDataSystemInitialization();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testGameDataRetrieval();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testAISystemIntegration();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testBackupDataGeneration();
+            
+            // 最终总结
+            setTimeout(() => {
+                logResult('function-results', '🎉 所有测试完成！请检查各个测试结果。', 'success');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

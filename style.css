@@ -35,6 +35,14 @@ header {
     margin: 0;
     font-weight: bold;
 }
+
+.game-subtitle {
+    font-size: 1.1em;
+    color: #666;
+    margin: 8px 0 20px 0;
+    font-weight: normal;
+    font-style: italic;
+}
 header h2#scene-title { /* 更精确的选择器 */
     font-size: 1.4em;
     color: #555;

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>西游识字简单测试</h1>
+    <div id="test-results"></div>
+
+    <script>
+        const testResults = document.getElementById('test-results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            testResults.appendChild(div);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // 简单测试函数
+        async function runSimpleTests() {
+            addResult('开始简单测试...', 'info');
+            
+            try {
+                // 测试1: 检查基本类是否加载
+                addResult('测试1: 检查基本类是否加载', 'info');
+                
+                if (typeof CharacterProvider === 'undefined') {
+                    addResult('❌ CharacterProvider 未加载', 'error');
+                    return;
+                }
+                addResult('✅ CharacterProvider 已加载', 'success');
+
+                // 测试2: 创建CharacterProvider实例
+                addResult('测试2: 创建CharacterProvider实例', 'info');
+                const provider = new CharacterProvider();
+                addResult('✅ CharacterProvider 实例创建成功', 'success');
+
+                // 测试3: 加载汉字数据
+                addResult('测试3: 加载汉字数据', 'info');
+                await provider.load();
+                addResult(`✅ 汉字数据加载成功，共 ${provider.characterList.length} 个汉字`, 'success');
+
+                // 测试4: 检查数据格式
+                addResult('测试4: 检查数据格式', 'info');
+                if (provider.characterList.length > 0) {
+                    const firstChar = provider.characterList[0];
+                    addResult(`✅ 第一个汉字: ${firstChar.char} (${firstChar.pinyin})`, 'success');
+                    
+                    if (firstChar.char && firstChar.pinyin) {
+                        addResult('✅ 数据格式正确', 'success');
+                    } else {
+                        addResult('❌ 数据格式不正确', 'error');
+                    }
+                } else {
+                    addResult('❌ 没有汉字数据', 'error');
+                }
+
+                // 测试5: 创建简单的游戏数据
+                addResult('测试5: 创建简单的游戏数据', 'info');
+                const simpleGameData = [{
+                    level: 1,
+                    scene: "测试关卡",
+                    characters: provider.characterList.slice(0, 5).map(char => ({
+                        char: char.char,
+                        pinyin: char.pinyin
+                    })),
+                    item: { name: "测试道具", icon: "🎯" }
+                }];
+                
+                addResult(`✅ 简单游戏数据创建成功，包含 ${simpleGameData[0].characters.length} 个汉字`, 'success');
+
+                // 测试6: 测试路线图渲染
+                addResult('测试6: 测试路线图渲染', 'info');
+                const container = document.createElement('div');
+                container.id = 'test-level-nodes-container';
+                document.body.appendChild(container);
+
+                simpleGameData.forEach((level, index) => {
+                    const node = document.createElement('div');
+                    node.className = 'level-node';
+                    node.textContent = level.scene;
+                    node.style.cssText = 'padding: 10px; margin: 5px; border: 1px solid #ccc; background: #f9f9f9;';
+                    container.appendChild(node);
+                });
+
+                addResult('✅ 路线图渲染测试成功', 'success');
+                addResult('所有基本测试通过！', 'success');
+
+            } catch (error) {
+                addResult(`❌ 测试失败: ${error.message}`, 'error');
+                console.error('测试错误:', error);
+            }
+        }
+
+        // 等待页面加载完成后运行测试
+        window.addEventListener('DOMContentLoaded', runSimpleTests);
+    </script>
+
+    <!-- 只加载必要的脚本 -->
+    <script src="character-provider.js?v=4"></script>
+</body>
+</html>

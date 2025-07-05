@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>详细调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .log { margin: 5px 0; padding: 5px; border-radius: 3px; font-family: monospace; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        #debug-output { max-height: 500px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>西游识字详细调试</h1>
+    <button onclick="runFullTest()">运行完整测试</button>
+    <button onclick="clearLog()">清空日志</button>
+    <div id="debug-output"></div>
+
+    <script>
+        const debugOutput = document.getElementById('debug-output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugOutput.appendChild(div);
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLog() {
+            debugOutput.innerHTML = '';
+        }
+
+        // 完整测试函数
+        async function runFullTest() {
+            clearLog();
+            log('开始完整测试...', 'info');
+            
+            try {
+                // 步骤1: 检查所有类是否加载
+                log('步骤1: 检查所有类是否加载', 'info');
+                const classes = ['CharacterProvider', 'AIPutiSystem', 'UserDataManager', 'ReviewScheduler', 'DataProcessor'];
+                for (const className of classes) {
+                    if (typeof window[className] !== 'undefined') {
+                        log(`✅ ${className} 已加载`, 'success');
+                    } else {
+                        log(`❌ ${className} 未加载`, 'error');
+                    }
+                }
+
+                // 步骤2: 检查全局函数
+                log('步骤2: 检查全局函数', 'info');
+                const functions = ['initSpeechSystem', 'initializeDataSystem', 'getGameData'];
+                for (const funcName of functions) {
+                    if (typeof window[funcName] === 'function') {
+                        log(`✅ ${funcName} 函数已定义`, 'success');
+                    } else {
+                        log(`❌ ${funcName} 函数未定义`, 'error');
+                    }
+                }
+
+                // 步骤3: 测试CharacterProvider
+                log('步骤3: 测试CharacterProvider', 'info');
+                const provider = new CharacterProvider();
+                await provider.load();
+                log(`✅ CharacterProvider 加载成功，共 ${provider.characterList.length} 个汉字`, 'success');
+
+                // 步骤4: 测试数据系统初始化
+                log('步骤4: 测试数据系统初始化', 'info');
+                const initResult = await initializeDataSystem();
+                if (initResult) {
+                    log('✅ 数据系统初始化成功', 'success');
+                } else {
+                    log('❌ 数据系统初始化失败', 'error');
+                }
+
+                // 步骤5: 测试游戏数据获取
+                log('步骤5: 测试游戏数据获取', 'info');
+                const gameData = getGameData();
+                log(`✅ 获取到 ${gameData.length} 个关卡数据`, 'success');
+
+                if (gameData.length > 0) {
+                    const firstLevel = gameData[0];
+                    log(`✅ 第一关: ${firstLevel.scene}`, 'success');
+                    log(`✅ 第一关汉字数量: ${firstLevel.characters ? firstLevel.characters.length : '未定义'}`, firstLevel.characters ? 'success' : 'error');
+                    
+                    if (firstLevel.characters && firstLevel.characters.length > 0) {
+                        const firstChar = firstLevel.characters[0];
+                        log(`✅ 第一个汉字: ${firstChar.char} (${firstChar.pinyin})`, 'success');
+                    }
+                }
+
+                // 步骤6: 测试AI菩提系统
+                log('步骤6: 测试AI菩提系统', 'info');
+                if (window.aiPutiSystem) {
+                    log('✅ AI菩提系统实例存在', 'success');
+                    if (window.aiPutiSystem.isInitialized) {
+                        log('✅ AI菩提系统已初始化', 'success');
+                    } else {
+                        log('⚠️ AI菩提系统未初始化', 'warning');
+                    }
+                } else {
+                    log('❌ AI菩提系统实例不存在', 'error');
+                }
+
+                // 步骤7: 测试全局函数接口
+                log('步骤7: 测试全局函数接口', 'info');
+                if (typeof getPutiAdvice === 'function') {
+                    const advice = getPutiAdvice();
+                    log(`✅ getPutiAdvice 返回 ${advice.length} 条建议`, 'success');
+                } else {
+                    log('❌ getPutiAdvice 函数不存在', 'error');
+                }
+
+                if (typeof getPutiRecommendation === 'function') {
+                    const recommendation = await getPutiRecommendation();
+                    log(`✅ getPutiRecommendation 返回: ${recommendation ? '有推荐' : '无推荐'}`, 'success');
+                } else {
+                    log('❌ getPutiRecommendation 函数不存在', 'error');
+                }
+
+                log('完整测试完成！', 'success');
+
+            } catch (error) {
+                log(`❌ 测试过程中出现错误: ${error.message}`, 'error');
+                console.error('详细错误:', error);
+            }
+        }
+
+        // 页面加载完成后自动运行测试
+        window.addEventListener('DOMContentLoaded', () => {
+            log('页面加载完成，等待脚本加载...', 'info');
+            setTimeout(runFullTest, 1000); // 等待1秒让脚本加载完成
+        });
+    </script>
+
+    <!-- 加载所有脚本 -->
+    <script src="speech-system.js?v=5"></script>
+    <script src="character-provider.js?v=5"></script>
+    <script src="ai-puti-system.js?v=5"></script>
+    <script src="user-data-manager.js?v=5"></script>
+    <script src="review-scheduler.js?v=5"></script>
+    <script src="data-processor.js?v=7"></script>
+    <script src="generate-levels.js?v=5"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>西游识字调试测试</h1>
+    <div id="debug-output"></div>
+
+    <script>
+        const debugOutput = document.getElementById('debug-output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugOutput.appendChild(div);
+            console.log(message);
+        }
+
+        // 测试脚本加载
+        async function testScriptLoading() {
+            log('开始测试脚本加载...', 'info');
+            
+            try {
+                // 测试CharacterProvider
+                if (typeof CharacterProvider !== 'undefined') {
+                    log('✅ CharacterProvider 已加载', 'success');
+                    const provider = new CharacterProvider();
+                    await provider.load();
+                    log(`✅ CharacterProvider 初始化成功，加载了 ${provider.characterList.length} 个汉字`, 'success');
+                } else {
+                    log('❌ CharacterProvider 未定义', 'error');
+                }
+
+                // 测试AIPutiSystem
+                if (typeof AIPutiSystem !== 'undefined') {
+                    log('✅ AIPutiSystem 已加载', 'success');
+                } else {
+                    log('❌ AIPutiSystem 未定义', 'error');
+                }
+
+                // 测试DataProcessor
+                if (typeof DataProcessor !== 'undefined') {
+                    log('✅ DataProcessor 已加载', 'success');
+                } else {
+                    log('❌ DataProcessor 未定义', 'error');
+                }
+
+                // 测试数据初始化
+                if (typeof initializeDataSystem === 'function') {
+                    log('✅ initializeDataSystem 函数已定义', 'success');
+                    const result = await initializeDataSystem();
+                    if (result) {
+                        log('✅ 数据系统初始化成功', 'success');
+                    } else {
+                        log('❌ 数据系统初始化失败', 'error');
+                    }
+                } else {
+                    log('❌ initializeDataSystem 函数未定义', 'error');
+                }
+
+                // 测试游戏数据
+                if (typeof getGameData === 'function') {
+                    log('✅ getGameData 函数已定义', 'success');
+                    const gameData = getGameData();
+                    log(`✅ 游戏数据获取成功，共 ${gameData.length} 个关卡`, 'success');
+                } else {
+                    log('❌ getGameData 函数未定义', 'error');
+                }
+
+            } catch (error) {
+                log(`❌ 测试过程中出现错误: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // 开始测试
+        testScriptLoading();
+    </script>
+
+    <!-- 加载所有必要的脚本 -->
+    <script src="speech-system.js?v=3"></script>
+    <script src="character-provider.js?v=3"></script>
+    <script src="ai-puti-system.js?v=3"></script>
+    <script src="user-data-manager.js?v=3"></script>
+    <script src="review-scheduler.js?v=3"></script>
+    <script src="data-processor.js?v=7"></script>
+    <script src="generate-levels.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地文件访问测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .test-title {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 4px solid #2196F3;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #FFC107;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🔧 本地文件访问测试</h1>
+        
+        <div class="test-section">
+            <h3>📋 协议检测</h3>
+            <button onclick="testProtocolDetection()">检测当前协议</button>
+            <div id="protocol-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📚 汉字数据加载测试</h3>
+            <button onclick="testCharacterProvider()">测试汉字数据加载</button>
+            <div id="character-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📖 故事模板加载测试</h3>
+            <button onclick="testDataProcessor()">测试故事模板加载</button>
+            <div id="story-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎮 完整系统测试</h3>
+            <button onclick="testFullSystem()">测试完整系统</button>
+            <div id="system-results"></div>
+        </div>
+    </div>
+
+    <!-- 引入必要的脚本 -->
+    <script src="character-provider.js?v=8"></script>
+    <script src="data-processor.js?v=9"></script>
+    <script src="generate-levels.js"></script>
+
+    <script>
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+            container.appendChild(resultDiv);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        // 测试协议检测
+        function testProtocolDetection() {
+            clearResults('protocol-results');
+            
+            const protocol = window.location.protocol;
+            const isLocalFile = protocol === 'file:';
+            
+            logResult('protocol-results', `🔍 当前协议: ${protocol}`, 'info');
+            
+            if (isLocalFile) {
+                logResult('protocol-results', '✅ 检测到本地文件协议，将使用内置数据', 'success');
+            } else {
+                logResult('protocol-results', '🌐 检测到HTTP协议，将尝试加载外部文件', 'info');
+            }
+        }
+
+        // 测试汉字数据加载
+        async function testCharacterProvider() {
+            clearResults('character-results');
+            logResult('character-results', '🔄 正在测试汉字数据加载...', 'info');
+            
+            try {
+                const provider = new CharacterProvider();
+                await provider.load();
+                
+                const characterCount = provider.characterList.length;
+                logResult('character-results', `✅ 成功加载 ${characterCount} 个汉字`, 'success');
+                
+                if (characterCount > 0) {
+                    const firstChar = provider.characterList[0];
+                    logResult('character-results', `📝 第一个汉字: ${firstChar.char} (${firstChar.pinyin})`, 'info');
+                    
+                    // 测试获取高频汉字
+                    const highFreqChars = await provider.getCharactersByRankRange(1, 5);
+                    const charList = highFreqChars.map(c => `${c.char}(${c.pinyin})`).join(', ');
+                    logResult('character-results', `🎯 前5个高频汉字: ${charList}`, 'success');
+                } else {
+                    logResult('character-results', '❌ 汉字数据为空', 'error');
+                }
+            } catch (error) {
+                logResult('character-results', `❌ 汉字数据加载失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试故事模板加载
+        async function testDataProcessor() {
+            clearResults('story-results');
+            logResult('story-results', '🔄 正在测试故事模板加载...', 'info');
+            
+            try {
+                const provider = new CharacterProvider();
+                await provider.load();
+                
+                const processor = new DataProcessor(provider);
+                await processor.initialize();
+                
+                const storyCount = processor.storyTemplates.length;
+                logResult('story-results', `✅ 成功加载 ${storyCount} 个故事模板`, 'success');
+                
+                if (storyCount > 0) {
+                    const firstStory = processor.storyTemplates[0];
+                    logResult('story-results', `📖 第一个故事: ${firstStory.scene}`, 'info');
+                    logResult('story-results', `📝 故事背景: ${firstStory.background}`, 'info');
+                } else {
+                    logResult('story-results', '❌ 故事模板为空', 'error');
+                }
+            } catch (error) {
+                logResult('story-results', `❌ 故事模板加载失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试完整系统
+        async function testFullSystem() {
+            clearResults('system-results');
+            logResult('system-results', '🚀 正在测试完整系统...', 'info');
+            
+            try {
+                // 1. 初始化汉字提供者
+                const provider = new CharacterProvider();
+                await provider.load();
+                logResult('system-results', '✅ 汉字提供者初始化成功', 'success');
+                
+                // 2. 初始化数据处理器
+                const processor = new DataProcessor(provider);
+                await processor.initialize();
+                logResult('system-results', '✅ 数据处理器初始化成功', 'success');
+                
+                // 3. 测试游戏数据生成
+                const gameData = processor.gameData;
+                if (gameData && gameData.length > 0) {
+                    logResult('system-results', `✅ 成功生成 ${gameData.length} 个游戏关卡`, 'success');
+                    
+                    const firstLevel = gameData[0];
+                    if (firstLevel.characters && firstLevel.characters.length > 0) {
+                        logResult('system-results', `🎮 第一关: ${firstLevel.scene}`, 'info');
+                        logResult('system-results', `📝 包含 ${firstLevel.characters.length} 个汉字`, 'info');
+                        
+                        const charList = firstLevel.characters.slice(0, 5).map(c => `${c.char}(${c.pinyin})`).join(', ');
+                        logResult('system-results', `🔤 前5个汉字: ${charList}`, 'info');
+                    }
+                } else {
+                    logResult('system-results', '❌ 游戏数据生成失败', 'error');
+                }
+                
+                // 4. 测试备用数据生成
+                const generator = new LevelGenerator();
+                const backupData = generator.generateLevels(5, 5);
+                if (backupData && backupData.length > 0) {
+                    logResult('system-results', `✅ 备用数据生成成功: ${backupData.length} 个关卡`, 'success');
+                } else {
+                    logResult('system-results', '❌ 备用数据生成失败', 'error');
+                }
+                
+                logResult('system-results', '🎉 完整系统测试通过！', 'success');
+                
+            } catch (error) {
+                logResult('system-results', `❌ 系统测试失败: ${error.message}`, 'error');
+                console.error('详细错误:', error);
+            }
+        }
+
+        // 页面加载完成后自动检测协议
+        window.addEventListener('DOMContentLoaded', () => {
+            testProtocolDetection();
+        });
+    </script>
+</body>
+</html>

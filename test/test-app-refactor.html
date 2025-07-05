@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App.js 重构测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .module-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .module-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .module-methods {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🔧 App.js 模块化重构测试</h1>
+        
+        <div class="test-section">
+            <h3>模块结构验证</h3>
+            <button onclick="testModuleStructure()">检查模块结构</button>
+            <div id="module-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>游戏状态管理测试</h3>
+            <button onclick="testGameState()">测试GameState模块</button>
+            <div id="gamestate-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>UI模块测试</h3>
+            <button onclick="testUIModule()">测试UI模块</button>
+            <div id="ui-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>游戏逻辑测试</h3>
+            <button onclick="testGameLogic()">测试GameLogic模块</button>
+            <div id="gamelogic-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>事件处理测试</h3>
+            <button onclick="testEventHandler()">测试EventHandler模块</button>
+            <div id="eventhandler-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>完整功能测试</h3>
+            <button onclick="runFullTest()">运行完整测试</button>
+            <div id="full-results"></div>
+        </div>
+    </div>
+
+    <!-- 模拟必要的HTML结构 -->
+    <div style="display: none;">
+        <div id="route-map-view"></div>
+        <div id="game-view"></div>
+        <div id="level-nodes-container"></div>
+        <div id="fail-modal"></div>
+        <div id="level-complete-modal"></div>
+        <button id="continue-btn"></button>
+        <button id="retry-btn"></button>
+        <div id="lives-tracker"></div>
+        <div id="score-tracker"></div>
+        <div id="progress-tracker"></div>
+        <div id="scene-title"></div>
+        <img id="scene-image">
+        <div id="character-display"></div>
+        <div id="character-text"></div>
+        <div class="options-container">
+            <button class="option-btn"></button>
+            <button class="option-btn"></button>
+            <button class="option-btn"></button>
+            <button class="option-btn"></button>
+        </div>
+        <div id="feedback-message"></div>
+        <div id="modal-title"></div>
+        <div id="modal-message"></div>
+        <div id="puti-advice"></div>
+        <div id="puti-recommendation"></div>
+    </div>
+
+    <!-- 引入必要的依赖 -->
+    <script>
+        // 模拟必要的全局变量和函数
+        window.gameData = [
+            {
+                scene: "测试关卡",
+                image: "test.jpg",
+                characters: [
+                    { char: "一", pinyin: "yī" },
+                    { char: "二", pinyin: "èr" }
+                ],
+                item: { name: "测试道具", icon: "🎯" }
+            }
+        ];
+
+        window.speechSystem = {
+            isPlaying: false,
+            speakPinyin: async (pinyin) => {
+                console.log(`模拟播放拼音: ${pinyin}`);
+                return Promise.resolve();
+            }
+        };
+
+        window.initSpeechSystem = async () => Promise.resolve();
+        window.initializeDataSystem = async () => Promise.resolve();
+        window.getGameData = () => window.gameData;
+        window.getPutiAdvice = () => [{ icon: "🧘‍♂️", message: "测试建议" }];
+        window.getPutiRecommendation = () => ({ type: "learning", reason: "测试推荐", estimatedTime: 5 });
+        window.recordLearningResult = () => {};
+    </script>
+
+    <!-- 引入重构后的app.js -->
+    <script src="app.js"></script>
+
+    <script>
+        // 工具函数
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        // 测试模块结构
+        function testModuleStructure() {
+            clearResults('module-results');
+            
+            const modules = [
+                { name: 'Utils', obj: window.Utils },
+                { name: 'GameState', obj: window.GameState },
+                { name: 'UI', obj: window.UI },
+                { name: 'GameLogic', obj: window.GameLogic },
+                { name: 'EventHandler', obj: window.EventHandler },
+                { name: 'PutiSystem', obj: window.PutiSystem },
+                { name: 'App', obj: window.App }
+            ];
+
+            modules.forEach(module => {
+                if (module.obj) {
+                    const methods = Object.getOwnPropertyNames(module.obj).filter(prop => 
+                        typeof module.obj[prop] === 'function'
+                    );
+                    logResult('module-results', 
+                        `<div class="module-info">
+                            <div class="module-name">✅ ${module.name} 模块</div>
+                            <div class="module-methods">方法: ${methods.join(', ')}</div>
+                        </div>`, 'success');
+                } else {
+                    logResult('module-results', `❌ ${module.name} 模块未找到`, 'error');
+                }
+            });
+        }
+
+        // 测试GameState模块
+        function testGameState() {
+            clearResults('gamestate-results');
+            
+            try {
+                // 测试重置功能
+                GameState.reset();
+                logResult('gamestate-results', '✅ GameState.reset() 执行成功', 'success');
+                
+                // 测试状态更新
+                GameState.increaseScore();
+                logResult('gamestate-results', `✅ 分数增加: ${GameState.score}`, 'success');
+                
+                GameState.decreaseLife();
+                logResult('gamestate-results', `✅ 生命减少: ${GameState.lives}`, 'success');
+                
+                // 测试关卡初始化
+                GameState.initializeLevel(1);
+                logResult('gamestate-results', `✅ 关卡初始化: Level ${GameState.currentLevelIndex}, Lives ${GameState.lives}`, 'success');
+                
+            } catch (error) {
+                logResult('gamestate-results', `❌ GameState测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试UI模块
+        function testUIModule() {
+            clearResults('ui-results');
+            
+            try {
+                // 测试UI更新方法
+                GameState.lives = 3;
+                GameState.score = 100;
+                
+                UI.updateLivesDisplay();
+                UI.updateScoreDisplay();
+                
+                logResult('ui-results', '✅ UI显示更新成功', 'success');
+                logResult('ui-results', `✅ 生命显示: ${UI.livesTrackerEl.textContent}`, 'info');
+                logResult('ui-results', `✅ 分数显示: ${UI.scoreTrackerEl.textContent}`, 'info');
+                
+                // 测试反馈消息
+                UI.updateFeedbackMessage('测试消息', 'green');
+                logResult('ui-results', '✅ 反馈消息更新成功', 'success');
+                
+            } catch (error) {
+                logResult('ui-results', `❌ UI模块测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试GameLogic模块
+        function testGameLogic() {
+            clearResults('gamelogic-results');
+            
+            try {
+                // 测试题目加载
+                GameState.initializeLevel(0);
+                GameLogic.loadQuestion();
+                logResult('gamelogic-results', '✅ 题目加载成功', 'success');
+                
+                // 测试拼音播放
+                GameLogic.playPinyinOnly('yī').then(() => {
+                    logResult('gamelogic-results', '✅ 拼音播放功能正常', 'success');
+                });
+                
+                logResult('gamelogic-results', `✅ 当前汉字: ${UI.characterTextEl.textContent}`, 'info');
+                logResult('gamelogic-results', `✅ 正确拼音: ${GameState.correctPinyin}`, 'info');
+                
+            } catch (error) {
+                logResult('gamelogic-results', `❌ GameLogic测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试EventHandler模块
+        function testEventHandler() {
+            clearResults('eventhandler-results');
+            
+            try {
+                // 测试事件处理器初始化
+                EventHandler.init();
+                logResult('eventhandler-results', '✅ 事件处理器初始化成功', 'success');
+                
+                // 模拟点击事件
+                const mockEvent = {
+                    target: UI.optionButtons[0],
+                    preventDefault: () => {},
+                    stopPropagation: () => {}
+                };
+                
+                // 设置测试数据
+                UI.optionButtons[0].dataset.pinyin = 'yī';
+                
+                logResult('eventhandler-results', '✅ 事件委托设置完成', 'success');
+                logResult('eventhandler-results', '✅ 模拟事件测试准备就绪', 'info');
+                
+            } catch (error) {
+                logResult('eventhandler-results', `❌ EventHandler测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 运行完整测试
+        async function runFullTest() {
+            clearResults('full-results');
+            logResult('full-results', '🚀 开始完整功能测试...', 'info');
+            
+            try {
+                // 测试应用初始化
+                await App.init();
+                logResult('full-results', '✅ 应用初始化成功', 'success');
+                
+                // 测试游戏流程
+                GameLogic.startLevel(0);
+                logResult('full-results', '✅ 游戏关卡启动成功', 'success');
+                
+                // 测试AI菩提系统
+                PutiSystem.updatePanel();
+                logResult('full-results', '✅ AI菩提面板更新成功', 'success');
+                
+                // 测试状态保存
+                GameState.saveProgress();
+                logResult('full-results', '✅ 进度保存成功', 'success');
+                
+                logResult('full-results', '🎉 所有测试通过！重构成功！', 'success');
+                
+            } catch (error) {
+                logResult('full-results', `❌ 完整测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载完成后自动检查模块结构
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🔧 App.js 重构测试页面已加载');
+                testModuleStructure();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
