@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>移动端测试 - 西游识字</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #d9534f;
+            margin-bottom: 30px;
+        }
+        
+        .level-node {
+            padding: 15px 30px;
+            border: 3px solid #d9534f;
+            border-radius: 12px;
+            background: white;
+            margin: 10px 0;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: normal;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .level-node:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        
+        .status-icon {
+            font-size: 18px;
+            color: #d9534f;
+        }
+        
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>移动端测试</h1>
+        
+        <div class="level-node" data-level-index="0">
+            花果山
+            <span class="status-icon">▶️</span>
+        </div>
+        
+        <div class="level-node locked" data-level-index="1" style="border-color: #ccc; opacity: 0.6; cursor: not-allowed;">
+            东海龙宫
+            <span class="status-icon" style="color: #ccc;">🔒</span>
+        </div>
+        
+        <div class="debug-info">
+            <strong>设备信息:</strong><br>
+            User Agent: <span id="user-agent"></span><br>
+            Touch Support: <span id="touch-support"></span><br>
+            Max Touch Points: <span id="max-touch-points"></span><br>
+            Screen Size: <span id="screen-size"></span><br>
+            Viewport Size: <span id="viewport-size"></span>
+        </div>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // 显示设备信息
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        document.getElementById('touch-support').textContent = 'ontouchstart' in window ? '是' : '否';
+        document.getElementById('max-touch-points').textContent = navigator.maxTouchPoints || '0';
+        document.getElementById('screen-size').textContent = `${screen.width}x${screen.height}`;
+        document.getElementById('viewport-size').textContent = `${window.innerWidth}x${window.innerHeight}`;
+        
+        // 测试结果容器
+        const testResults = document.getElementById('test-results');
+        
+        function addTestResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `test-result ${isSuccess ? 'success' : 'error'}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            testResults.appendChild(div);
+            console.log(message);
+        }
+        
+        // 测试点击事件
+        const levelNode = document.querySelector('.level-node[data-level-index="0"]');
+        
+        if (levelNode) {
+            // 添加多种事件监听器
+            levelNode.addEventListener('click', function(e) {
+                addTestResult('✅ Click 事件触发');
+                
+                // 测试语音合成
+                if (window.speechSynthesis) {
+                    const utterance = new SpeechSynthesisUtterance('花果山');
+                    utterance.lang = 'zh-CN';
+                    utterance.volume = 0.8;
+                    window.speechSynthesis.speak(utterance);
+                    addTestResult('🔊 语音播放: 花果山');
+                } else {
+                    addTestResult('❌ 语音合成不支持', false);
+                }
+            });
+            
+            levelNode.addEventListener('touchstart', function(e) {
+                addTestResult('👆 TouchStart 事件触发');
+            }, { passive: true });
+            
+            levelNode.addEventListener('touchend', function(e) {
+                addTestResult('👆 TouchEnd 事件触发');
+            }, { passive: true });
+            
+            addTestResult('✅ 事件监听器已添加');
+        } else {
+            addTestResult('❌ 找不到关卡节点', false);
+        }
+        
+        // 测试音频激活
+        document.addEventListener('touchstart', function() {
+            if (window.speechSynthesis) {
+                const utterance = new SpeechSynthesisUtterance('');
+                utterance.volume = 0;
+                window.speechSynthesis.speak(utterance);
+                addTestResult('🔊 音频上下文已激活');
+            }
+        }, { once: true, passive: true });
+        
+        addTestResult('🚀 测试页面初始化完成');
+    </script>
+</body>
+</html>

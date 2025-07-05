@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西游识字 - 干净测试版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 主界面 -->
+    <div id="route-map-view" class="view">
+        <div class="header">
+            <h1>西游识字</h1>
+            <p class="subtitle">苏路越，跟随孙悟空，踏上识字取经路</p>
+        </div>
+
+        <!-- AI菩提助手面板 -->
+        <div id="puti-panel" class="puti-panel">
+            <div class="puti-avatar">🧘‍♂️</div>
+            <h3>AI菩提助手</h3>
+            <p id="puti-message">正在为您分析学习情况...</p>
+            <button id="start-learning-btn" class="puti-btn">开始学习</button>
+        </div>
+
+        <!-- 关卡路线图 -->
+        <div id="level-nodes-container">
+            <!-- 关卡节点将在这里动态生成 -->
+        </div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="game-view" class="view hidden">
+        <div class="game-header">
+            <div id="progress-tracker">1 / 4</div>
+            <div id="lives-tracker">❤️❤️❤️</div>
+        </div>
+
+        <div class="game-content">
+            <div id="scene-image-container">
+                <img id="scene-image" src="" alt="场景图片">
+            </div>
+
+            <div id="character-display">
+                <div id="current-character">山</div>
+                <div id="character-pinyin">shān</div>
+            </div>
+
+            <div id="options-container">
+                <!-- 选项按钮将在这里动态生成 -->
+            </div>
+        </div>
+
+        <button id="back-to-map-btn" class="back-btn">返回路线图</button>
+    </div>
+
+    <!-- 失败模态框 -->
+    <div id="fail-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>闯关失败</h2>
+            <p>别灰心，再来一次吧！</p>
+            <button id="retry-btn" class="modal-btn">返回路线图</button>
+        </div>
+    </div>
+
+    <!-- 关卡完成模态框 -->
+    <div id="level-complete-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="level-complete-title">恭喜通关！</h2>
+            <p id="level-complete-message">你获得了新的宝物！</p>
+            <div id="item-display">
+                <div id="item-name">金箍棒</div>
+                <div id="item-description">孙悟空的神兵利器</div>
+            </div>
+            <button id="continue-btn" class="modal-btn">继续冒险</button>
+        </div>
+    </div>
+
+    <!-- 核心脚本 -->
+    <script>
+        // 简化的游戏数据
+        const gameData = [
+            {
+                scene: "花果山",
+                image: "images/huaguoshan.jpg",
+                characters: [
+                    { char: "山", pinyin: "shān" },
+                    { char: "水", pinyin: "shuǐ" },
+                    { char: "花", pinyin: "huā" },
+                    { char: "果", pinyin: "guǒ" }
+                ],
+                item: { name: "金箍棒", description: "孙悟空的神兵利器" }
+            },
+            {
+                scene: "东海龙宫",
+                image: "images/huaguoshan.jpg",
+                characters: [
+                    { char: "龙", pinyin: "lóng" },
+                    { char: "海", pinyin: "hǎi" },
+                    { char: "宫", pinyin: "gōng" },
+                    { char: "王", pinyin: "wáng" }
+                ],
+                item: { name: "龙鳞", description: "东海龙王的鳞片" }
+            }
+        ];
+
+        // 游戏状态
+        let currentLevelIndex = 0;
+        let highestLevelUnlocked = 0;
+
+        // DOM元素
+        const routeMapView = document.getElementById('route-map-view');
+        const gameView = document.getElementById('game-view');
+        const levelNodesContainer = document.getElementById('level-nodes-container');
+        const startLearningBtn = document.getElementById('start-learning-btn');
+
+        // 渲染路线图
+        function renderRouteMap() {
+            console.log('🗺️ 渲染路线图');
+            levelNodesContainer.innerHTML = '';
+
+            gameData.forEach((level, index) => {
+                const node = document.createElement('div');
+                node.classList.add('level-node');
+                node.textContent = level.scene;
+                node.dataset.levelIndex = index;
+
+                let icon = '';
+                if (index < highestLevelUnlocked) {
+                    node.classList.add('completed');
+                    icon = '✅';
+                } else if (index === highestLevelUnlocked) {
+                    node.classList.add('unlocked');
+                    icon = '▶️';
+                } else {
+                    node.classList.add('locked');
+                    icon = '🔒';
+                }
+
+                const statusIcon = document.createElement('span');
+                statusIcon.className = 'status-icon';
+                statusIcon.textContent = icon;
+                node.appendChild(statusIcon);
+
+                levelNodesContainer.appendChild(node);
+            });
+        }
+
+        // 开始游戏
+        function startGame(levelIndex) {
+            console.log('🎮 开始游戏，关卡:', levelIndex);
+            currentLevelIndex = levelIndex;
+            
+            // 激活音频
+            if (window.speechSynthesis) {
+                const utterance = new SpeechSynthesisUtterance('开始游戏');
+                utterance.lang = 'zh-CN';
+                utterance.volume = 0.8;
+                window.speechSynthesis.speak(utterance);
+            }
+            
+            // 显示游戏界面
+            routeMapView.classList.add('hidden');
+            gameView.classList.remove('hidden');
+            
+            alert(`进入${gameData[levelIndex].scene}！`);
+        }
+
+        // 事件监听器
+        levelNodesContainer.addEventListener('click', function(e) {
+            const levelNode = e.target.closest('.level-node');
+            if (!levelNode || levelNode.classList.contains('locked')) {
+                console.log('🔒 关卡被锁定');
+                return;
+            }
+
+            const levelIndex = parseInt(levelNode.dataset.levelIndex, 10);
+            console.log('🎯 点击关卡:', levelIndex);
+            
+            if (!isNaN(levelIndex)) {
+                startGame(levelIndex);
+            }
+        });
+
+        startLearningBtn.addEventListener('click', function() {
+            console.log('🎯 点击开始学习');
+            startGame(0);
+        });
+
+        // 初始化
+        function init() {
+            console.log('🚀 初始化游戏');
+            renderRouteMap();
+            console.log('✅ 初始化完成');
+        }
+
+        // 启动
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -11,11 +11,24 @@
                      ('ontouchstart' in window) ||
                      (navigator.maxTouchPoints > 0);
 
-    // 强制在所有设备上运行修复（调试用）
+    // 只在真正需要时运行修复
     console.log(`📱 设备检测: ${isMobile ? '移动设备' : '桌面设备'}`);
-    console.log('🔧 强制应用紧急修复（所有设备）...');
-    
-    console.log('📱 检测到移动设备，应用紧急修复...');
+
+    // 检查是否真的需要紧急修复
+    const needsEmergencyFix = () => {
+        const levelContainer = document.getElementById('level-nodes-container');
+        const hasError = document.querySelector('.error-message');
+        const isEmpty = !levelContainer || levelContainer.children.length === 0;
+        return hasError || isEmpty;
+    };
+
+    // 如果界面正常，就不要干预
+    if (!needsEmergencyFix()) {
+        console.log('✅ 界面正常，跳过紧急修复');
+        return;
+    }
+
+    console.log('📱 检测到需要紧急修复，开始处理...');
     
     let audioActivated = false;
     let emergencyDataLoaded = false;
@@ -184,13 +197,14 @@
     
     // 检查并修复卡住的界面
     function checkAndFixStuckInterface() {
-        // 立即检查一次
-        performInterfaceFix();
+        // 等待一段时间让原始脚本加载
+        setTimeout(() => {
+            performInterfaceFix();
+        }, 2000);
 
-        // 然后定期检查
-        setTimeout(performInterfaceFix, 1000);
-        setTimeout(performInterfaceFix, 3000);
+        // 然后定期检查，但间隔更长
         setTimeout(performInterfaceFix, 5000);
+        setTimeout(performInterfaceFix, 10000);
     }
 
     function performInterfaceFix() {
@@ -198,11 +212,23 @@
 
         const levelNodesContainer = document.getElementById('level-nodes-container');
         const errorMessage = document.querySelector('.error-message');
+        const hasValidNodes = levelNodesContainer && levelNodesContainer.children.length > 0;
+        const hasClickableNodes = levelNodesContainer && levelNodesContainer.querySelector('.level-node');
 
-        // 检查是否有错误消息或空的关卡容器
-        if ((levelNodesContainer && levelNodesContainer.children.length === 0) || errorMessage) {
+        // 只在真正有问题时才修复
+        if (errorMessage || (!hasValidNodes && !hasClickableNodes)) {
             console.log('🚨 检测到界面问题，应用紧急修复...');
             loadEmergencyData();
+
+            // 等待一下，看看原始脚本是否能自己修复
+            setTimeout(() => {
+                const stillNeedsFixing = !document.querySelector('.level-node') || document.querySelector('.error-message');
+                if (!stillNeedsFixing) {
+                    console.log('✅ 原始脚本已修复问题，取消紧急修复');
+                    return;
+                }
+
+                console.log('🔧 继续执行紧急修复...');
 
             if (levelNodesContainer) {
                 // 强制显示关卡节点

@@ -50,9 +50,38 @@
     // 执行紧急修复
     function performEmergencyFix() {
         console.log('🔧 执行紧急修复...');
-        
+
         // 显示修复状态
         showStatus('🔧 正在修复...', '#ff9800');
+
+        // 检查是否真的需要修复
+        const levelContainer = document.getElementById('level-nodes-container');
+        const hasValidNodes = levelContainer && levelContainer.children.length > 0;
+        const hasClickableNodes = levelContainer && levelContainer.querySelector('.level-node');
+        const hasErrorMessage = document.querySelector('.error-message');
+
+        if ((hasValidNodes || hasClickableNodes) && !hasErrorMessage) {
+            showStatus('✅ 界面正常，无需修复', '#4caf50');
+            return;
+        }
+
+        // 给原始脚本一些时间来加载
+        showStatus('⏳ 等待原始脚本加载...', '#ff9800');
+        setTimeout(() => {
+            const stillNeedsFixing = !document.querySelector('.level-node') || document.querySelector('.error-message');
+            if (!stillNeedsFixing) {
+                showStatus('✅ 原始脚本已加载，无需修复', '#4caf50');
+                return;
+            }
+
+            // 继续修复
+            performActualFix();
+        }, 2000);
+
+        return;
+    }
+
+    function performActualFix() {
         
         // 1. 强制激活音频
         try {
@@ -83,47 +112,102 @@
         ];
         console.log('📊 紧急数据已加载');
         
-        // 3. 修复界面
+        // 3. 修复界面 - 使用原始样式
         const levelContainer = document.getElementById('level-nodes-container');
         if (levelContainer) {
             levelContainer.innerHTML = `
-                <div class="level-node unlocked" style="
-                    padding: 20px;
+                <div class="level-node unlocked" data-level-index="0" style="
+                    padding: 15px 30px;
                     border: 3px solid #d9534f;
-                    border-radius: 15px;
+                    border-radius: 12px;
                     background: white;
-                    margin: 15px 0;
+                    margin: 10px 0;
                     cursor: pointer;
-                    text-align: center;
-                    font-size: 18px;
-                    font-weight: bold;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                    transition: transform 0.2s;
-                " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                    🏔️ 花果山 - 开始学习
-                    <div style="font-size: 14px; color: #666; margin-top: 5px;">
-                        点击开始识字之旅
-                    </div>
+                    position: relative;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 16px;
+                    font-weight: normal;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    touch-action: manipulation;
+                    -webkit-tap-highlight-color: transparent;
+                ">
+                    花果山
+                    <span class="status-icon" style="
+                        font-size: 18px;
+                        color: #d9534f;
+                    ">▶️</span>
+                </div>
+                <div class="level-node locked" data-level-index="1" style="
+                    padding: 15px 30px;
+                    border: 3px solid #ccc;
+                    border-radius: 12px;
+                    background: #f5f5f5;
+                    margin: 10px 0;
+                    cursor: not-allowed;
+                    position: relative;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 16px;
+                    opacity: 0.6;
+                    touch-action: none;
+                ">
+                    东海龙宫
+                    <span class="status-icon" style="
+                        font-size: 18px;
+                        color: #ccc;
+                    ">🔒</span>
                 </div>
             `;
             
-            // 添加点击事件
-            const levelNode = levelContainer.querySelector('.level-node');
+            // 添加点击事件 - 支持触摸设备
+            const levelNode = levelContainer.querySelector('.level-node[data-level-index="0"]');
             if (levelNode) {
-                levelNode.addEventListener('click', function() {
+                // 添加多种事件监听器以确保兼容性
+                const handleClick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     console.log('🎮 开始花果山关卡');
                     showStatus('🎮 进入花果山', '#4caf50');
-                    
-                    // 尝试启动游戏
+
+                    // 激活音频
+                    if (window.speechSynthesis) {
+                        const utterance = new SpeechSynthesisUtterance('花果山');
+                        utterance.lang = 'zh-CN';
+                        utterance.volume = 0.8;
+                        window.speechSynthesis.speak(utterance);
+                    }
+
+                    // 尝试启动原始游戏逻辑
                     setTimeout(() => {
                         if (window.GameLogic && window.GameLogic.startLevel) {
                             window.GameLogic.startLevel(0);
+                        } else if (window.startLevel) {
+                            window.startLevel(0);
                         } else {
-                            // 手动创建游戏界面
+                            // 创建简单游戏界面
                             createSimpleGame();
                         }
-                    }, 500);
-                });
+                    }, 300);
+                };
+
+                // 添加多种事件监听器
+                levelNode.addEventListener('click', handleClick, { passive: false });
+                levelNode.addEventListener('touchend', handleClick, { passive: false });
+
+                // 添加视觉反馈
+                levelNode.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                    this.style.opacity = '0.8';
+                }, { passive: true });
+
+                levelNode.addEventListener('touchend', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.opacity = '1';
+                }, { passive: true });
             }
             
             console.log('🎯 界面已修复');
