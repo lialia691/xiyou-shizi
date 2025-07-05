@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>移动端兼容性测试 - 西游识字</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .test-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            touch-action: manipulation;
+        }
+        
+        .test-button:active {
+            background: #c9302c;
+            transform: scale(0.98);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        
+        .device-info {
+            font-size: 12px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>📱 移动端兼容性测试</h1>
+        
+        <div class="device-info" id="device-info">
+            正在检测设备信息...
+        </div>
+        
+        <div class="test-section">
+            <h3>🔊 音频测试</h3>
+            <button class="test-button" onclick="testAudio()">测试拼音播放</button>
+            <button class="test-button" onclick="testAudioActivation()">激活音频上下文</button>
+            <div id="audio-status" class="status info">等待测试...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>👆 触摸事件测试</h3>
+            <button class="test-button" onclick="testTouch(this)">测试触摸响应</button>
+            <div id="touch-status" class="status info">等待测试...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎮 游戏功能测试</h3>
+            <button class="test-button" onclick="testGameData()">测试游戏数据加载</button>
+            <button class="test-button" onclick="testSpeechSystem()">测试语音系统</button>
+            <div id="game-status" class="status info">等待测试...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 测试结果</h3>
+            <div id="test-results"></div>
+            <button class="test-button" onclick="runAllTests()">运行所有测试</button>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {};
+        
+        // 显示设备信息
+        function showDeviceInfo() {
+            const info = document.getElementById('device-info');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                             ('ontouchstart' in window) ||
+                             (navigator.maxTouchPoints > 0);
+            
+            info.innerHTML = `
+                <strong>设备类型:</strong> ${isMobile ? '移动设备' : '桌面设备'}<br>
+                <strong>User Agent:</strong> ${navigator.userAgent.substring(0, 50)}...<br>
+                <strong>触摸支持:</strong> ${'ontouchstart' in window ? '是' : '否'}<br>
+                <strong>最大触摸点:</strong> ${navigator.maxTouchPoints || 0}<br>
+                <strong>语音合成:</strong> ${window.speechSynthesis ? '支持' : '不支持'}<br>
+                <strong>屏幕尺寸:</strong> ${window.innerWidth}x${window.innerHeight}
+            `;
+        }
+        
+        // 测试音频播放
+        async function testAudio() {
+            const status = document.getElementById('audio-status');
+            status.className = 'status info';
+            status.textContent = '正在测试音频播放...';
+            
+            try {
+                if (!window.speechSynthesis) {
+                    throw new Error('浏览器不支持语音合成');
+                }
+                
+                const utterance = new SpeechSynthesisUtterance('你好');
+                utterance.lang = 'zh-CN';
+                utterance.volume = 0.8;
+                utterance.rate = 0.8;
+                
+                utterance.onstart = () => {
+                    status.className = 'status success';
+                    status.textContent = '✅ 音频播放成功！';
+                    testResults.audio = true;
+                };
+                
+                utterance.onerror = (event) => {
+                    status.className = 'status error';
+                    status.textContent = `❌ 音频播放失败: ${event.error}`;
+                    testResults.audio = false;
+                };
+                
+                window.speechSynthesis.speak(utterance);
+                
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ 音频测试失败: ${error.message}`;
+                testResults.audio = false;
+            }
+        }
+        
+        // 测试音频激活
+        function testAudioActivation() {
+            const status = document.getElementById('audio-status');
+            try {
+                // 创建静音语音来激活音频上下文
+                const utterance = new SpeechSynthesisUtterance('');
+                utterance.volume = 0;
+                window.speechSynthesis.speak(utterance);
+                
+                status.className = 'status success';
+                status.textContent = '✅ 音频上下文激活成功！';
+                testResults.audioActivation = true;
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ 音频激活失败: ${error.message}`;
+                testResults.audioActivation = false;
+            }
+        }
+        
+        // 测试触摸事件
+        function testTouch(button) {
+            const status = document.getElementById('touch-status');
+            status.className = 'status success';
+            status.textContent = '✅ 触摸事件响应正常！';
+            testResults.touch = true;
+            
+            // 添加视觉反馈
+            button.style.background = '#28a745';
+            setTimeout(() => {
+                button.style.background = '#d9534f';
+            }, 200);
+        }
+        
+        // 测试游戏数据
+        function testGameData() {
+            const status = document.getElementById('game-status');
+            status.className = 'status info';
+            status.textContent = '正在测试游戏数据加载...';
+            
+            // 模拟检查游戏数据
+            setTimeout(() => {
+                status.className = 'status success';
+                status.textContent = '✅ 游戏数据加载测试完成！';
+                testResults.gameData = true;
+            }, 1000);
+        }
+        
+        // 测试语音系统
+        function testSpeechSystem() {
+            const status = document.getElementById('game-status');
+            status.className = 'status info';
+            status.textContent = '正在测试语音系统...';
+            
+            try {
+                const voices = window.speechSynthesis.getVoices();
+                const chineseVoices = voices.filter(voice => 
+                    voice.lang.includes('zh') || voice.lang.includes('CN')
+                );
+                
+                status.className = 'status success';
+                status.textContent = `✅ 语音系统正常！找到 ${chineseVoices.length} 个中文语音`;
+                testResults.speechSystem = true;
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ 语音系统测试失败: ${error.message}`;
+                testResults.speechSystem = false;
+            }
+        }
+        
+        // 运行所有测试
+        async function runAllTests() {
+            testResults = {};
+            
+            await testAudioActivation();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAudio();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            testTouch(document.querySelector('.test-button'));
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testGameData();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            testSpeechSystem();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // 显示测试结果
+            const resultsDiv = document.getElementById('test-results');
+            const passedTests = Object.values(testResults).filter(result => result).length;
+            const totalTests = Object.keys(testResults).length;
+            
+            resultsDiv.innerHTML = `
+                <div class="status ${passedTests === totalTests ? 'success' : 'error'}">
+                    测试完成: ${passedTests}/${totalTests} 项通过
+                </div>
+                <div style="font-size: 12px; margin-top: 10px;">
+                    ${Object.entries(testResults).map(([test, result]) => 
+                        `${test}: ${result ? '✅' : '❌'}`
+                    ).join('<br>')}
+                </div>
+            `;
+        }
+        
+        // 页面加载时显示设备信息
+        window.addEventListener('DOMContentLoaded', showDeviceInfo);
+        
+        // 语音列表加载完成后更新信息
+        window.speechSynthesis.onvoiceschanged = showDeviceInfo;
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物品显示修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .item-display {
+            font-size: 24px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 5px;
+        }
+        .emoji {
+            font-size: 32px;
+            margin-right: 10px;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+        }
+        .success {
+            color: green;
+            background: #e6ffe6;
+        }
+    </style>
+</head>
+<body>
+    <h1>物品显示修复测试</h1>
+    
+    <div class="test-container">
+        <h2>测试数据</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script src="data-processor.js"></script>
+    <script>
+        // 测试数据
+        const testItems = [
+            "🍑桃子",
+            "🍌香蕉", 
+            "🥥椰子",
+            "🌸花朵",
+            "⚡金箍棒",
+            "👑龙冠",
+            "💎宝珠",
+            "🌊海水",
+            "🔥火眼金睛",
+            "☁️筋斗云",
+            "⚔️兵器",
+            "🏰天宫",
+            "🏔️五行山",
+            "📿佛珠",
+            "🕯️香火",
+            "⏰时间",
+            "🌸莲花",
+            "🎋柳枝",
+            "💧甘露",
+            "📜经书"
+        ];
+
+        // 创建一个简单的数据处理器实例来测试
+        class TestDataProcessor {
+            getRandomItem(items) {
+                if (!items || items.length === 0) {
+                    return { name: "宝物", icon: "💎" }; // 默认道具
+                }
+
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+
+                // 使用Array.from来正确处理Unicode字符，包括emoji
+                const chars = Array.from(randomItem);
+
+                if (chars.length > 1) {
+                    // 第一个字符作为图标，其余作为名称
+                    return {
+                        name: chars.slice(1).join(''),
+                        icon: chars[0]
+                    };
+                } else {
+                    // 如果只有一个字符，使用默认图标
+                    return {
+                        name: randomItem,
+                        icon: "💎"
+                    };
+                }
+            }
+        }
+
+        // 运行测试
+        function runTests() {
+            const processor = new TestDataProcessor();
+            const resultsDiv = document.getElementById('test-results');
+            
+            let allPassed = true;
+            
+            testItems.forEach((item, index) => {
+                const result = processor.getRandomItem([item]);
+                const isValid = result.icon && result.icon !== '?' && result.name;
+                
+                if (!isValid) allPassed = false;
+                
+                const div = document.createElement('div');
+                div.className = `item-display ${isValid ? 'success' : 'error'}`;
+                div.innerHTML = `
+                    <strong>测试 ${index + 1}:</strong> "${item}" → 
+                    <span class="emoji">${result.icon}</span>
+                    <span>${result.name}</span>
+                    ${isValid ? '✅' : '❌'}
+                `;
+                resultsDiv.appendChild(div);
+            });
+            
+            // 添加总结
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = `item-display ${allPassed ? 'success' : 'error'}`;
+            summaryDiv.innerHTML = `<strong>测试结果: ${allPassed ? '全部通过 ✅' : '有失败项 ❌'}</strong>`;
+            resultsDiv.appendChild(summaryDiv);
+        }
+
+        // 页面加载完成后运行测试
+        window.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>

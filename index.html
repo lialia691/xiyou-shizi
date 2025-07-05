@@ -17,7 +17,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="西游识字">
 
-    <title>西游识字 </title>
+    <!-- 移动端优化 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- GitHub Pages 缓存控制 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <title>西游识字0.2 </title>
     <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
@@ -25,8 +38,8 @@
     <!-- 主菜单：关卡路线图视图 -->
     <div id="route-map-view" role="main" aria-label="游戏主菜单">
         <header>
-            <h1 class="game-title">西游识字 · 路线图</h1>
-            <p class="game-subtitle">跟随孙悟空，踏上识字取经路</p>
+            <h1 class="game-title">西游识字</h1>
+            <p class="game-subtitle">苏路越，跟随孙悟空，踏上识字取经路</p>
         </header>
 
         <!-- AI菩提助手面板 -->
@@ -106,6 +119,12 @@
             </div>
         </div>
     </div>
+
+    <!-- 移动端紧急修复脚本 (最高优先级) -->
+    <script src="mobile-emergency-fix.js?v=1"></script>
+
+    <!-- GitHub Pages 移动端修复脚本 (优先加载，不使用defer) -->
+    <script src="github-pages-fix.js?v=1"></script>
 
     <!-- 核心脚本加载 - 按依赖顺序排列 -->
     <!-- 基础系统 -->

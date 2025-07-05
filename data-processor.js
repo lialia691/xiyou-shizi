@@ -238,10 +238,23 @@ class DataProcessor {
         }
 
         const randomItem = items[Math.floor(Math.random() * items.length)];
-        return {
-            name: randomItem.substring(1), // 去掉emoji
-            icon: randomItem.charAt(0)     // 只保留emoji
-        };
+
+        // 使用Array.from来正确处理Unicode字符，包括emoji
+        const chars = Array.from(randomItem);
+
+        if (chars.length > 1) {
+            // 第一个字符作为图标，其余作为名称
+            return {
+                name: chars.slice(1).join(''),
+                icon: chars[0]
+            };
+        } else {
+            // 如果只有一个字符，使用默认图标
+            return {
+                name: randomItem,
+                icon: "💎"
+            };
+        }
     }
 
     // 改进的关卡难度计算（考虑故事难度和关卡进度）

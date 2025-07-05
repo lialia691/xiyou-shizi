@@ -38,8 +38,36 @@ class SpeechSystem {
         this.isPlaying = false; // 添加播放状态管理
         this.currentUtterance = null; // 当前播放的语音
         this.pinyinToCharMap = new Map(); // 使用 Map 替代巨大对象
+        this.isMobile = this.detectMobileDevice(); // 检测移动设备
+        this.audioActivated = false; // 移动端音频是否已激活
 
         // 不再在构造函数中调用 init()，改为外部调用
+    }
+
+    // 检测移动设备
+    detectMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               ('ontouchstart' in window) ||
+               (navigator.maxTouchPoints > 0);
+    }
+
+    // 移动端音频激活
+    async activateAudioForMobile() {
+        if (!this.isMobile || this.audioActivated) return;
+
+        try {
+            // 创建一个静音的语音来激活音频上下文
+            const utterance = new SpeechSynthesisUtterance('');
+            utterance.volume = 0;
+            utterance.rate = 1;
+            utterance.pitch = 1;
+
+            this.speechSynthesis.speak(utterance);
+            this.audioActivated = true;
+            console.log('📱 移动端音频上下文已激活');
+        } catch (error) {
+            console.warn('⚠️ 移动端音频激活失败:', error);
+        }
     }
 
     // 优化后的初始化方法
@@ -183,10 +211,15 @@ class SpeechSystem {
     }
 
     // 播放拼音发音
-    speakPinyin(pinyin, character = '') {
+    async speakPinyin(pinyin, character = '') {
         if (!this.isEnabled || !this.speechSynthesis) {
             console.warn('语音功能未启用');
             return Promise.resolve();
+        }
+
+        // 移动端音频激活
+        if (this.isMobile && !this.audioActivated) {
+            await this.activateAudioForMobile();
         }
 
         // 如果正在播放，先停止
@@ -233,6 +266,13 @@ class SpeechSystem {
                     console.error('语音播放错误:', event.error);
                     this.isPlaying = false;
                     this.currentUtterance = null;
+
+                    // 移动端特殊处理
+                    if (this.isMobile && event.error === 'not-allowed') {
+                        console.warn('📱 移动端音频权限被拒绝，尝试重新激活');
+                        this.audioActivated = false;
+                    }
+
                     reject(event.error);
                 };
 
