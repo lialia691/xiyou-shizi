@@ -70,8 +70,6 @@ main {
     object-fit: cover;
 }
 #character-display {
-    font-size: 90px;
-    font-weight: bold;
     height: 140px;
     width: 140px;
     margin: 0 auto 25px auto;
@@ -80,6 +78,50 @@ main {
     align-items: center;
     border: 3px solid #eee;
     border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#character-text {
+    font-size: 80px;
+    font-weight: bold;
+    color: #d9534f;
+    line-height: 1;
+}
+
+.pinyin-display {
+    font-size: 1.1em;
+    color: #666;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    user-select: none;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    min-width: 60px;
+    text-align: center;
+}
+
+.pinyin-display:hover {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+}
+
+.pinyin-display:active {
+    transform: scale(0.95);
+    background: rgba(102, 126, 234, 0.3);
+}
+
+.pinyin-display.playing {
+    animation: pinyinPulse 0.6s ease-in-out;
+    background: rgba(102, 126, 234, 0.3);
+}
+
+@keyframes pinyinPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 /* 4. 答题与反馈 */
@@ -89,13 +131,84 @@ main {
     gap: 12px;
 }
 .option-btn {
-    padding: 15px;
-    font-size: 1.25em;
+    padding: 12px;
     border: 2px solid #ddd;
     border-radius: 10px;
     background-color: #fdfdfd;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.option-char {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+}
+
+.option-pinyin {
+    font-size: 0.9em;
+    color: #666;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(102, 126, 234, 0.1);
+    transition: all 0.2s ease;
+}
+
+.option-pinyin:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.05);
+}
+
+/* 只显示拼音的选项按钮样式 */
+.pinyin-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 15px;
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+    background-color: #fdfdfd;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 60px;
+}
+
+.pinyin-option:hover:enabled {
+    background-color: #f0f8ff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.pinyin-option:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.option-pinyin-only {
+    font-size: 1.2em;
+    color: #333;
+    font-weight: bold;
+}
+
+/* 点击时的音频播放效果 */
+.pinyin-option.playing {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    animation: optionPulse 0.6s ease-in-out;
+}
+
+@keyframes optionPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 .option-btn:hover:enabled {
     background-color: #f0f0f0;

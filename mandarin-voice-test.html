@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纯正普通话语音测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        
+        .voice-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .voice-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .voice-details {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .test-chars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .char-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 20px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.8em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .char-btn:hover:not(.playing) {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .char-btn.playing {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            animation: charPulse 0.8s ease-in-out;
+        }
+        
+        @keyframes charPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .pinyin-label {
+            font-size: 0.6em;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+        
+        .voice-selector {
+            margin: 15px 0;
+        }
+        
+        .voice-selector select {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 1em;
+            width: 100%;
+        }
+        
+        .voice-selector option {
+            background: #333;
+            color: white;
+        }
+        
+        .quality-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        
+        .quality-high {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .quality-medium {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .quality-low {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎤 纯正普通话语音测试</h1>
+        
+        <div class="status" id="status">正在初始化语音系统...</div>
+        
+        <div class="voice-info">
+            <div class="voice-title">当前语音信息</div>
+            <div class="voice-details" id="voice-details">正在加载...</div>
+            
+            <div class="voice-selector">
+                <label>选择最佳普通话语音：</label>
+                <select id="voice-select" onchange="changeVoice()">
+                    <option value="">正在加载语音列表...</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="initTest()">🔄 重新初始化</button>
+            <button class="control-btn" onclick="testAllChars()">🎵 测试全部</button>
+            <button class="control-btn" onclick="testTonguesTwisters()">🌪️ 测试绕口令</button>
+        </div>
+        
+        <div class="test-section">
+            <div class="voice-title">基础拼音测试（点击听发音）</div>
+            <div class="test-chars" id="basic-chars">
+                <!-- 基础汉字将在这里生成 -->
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="voice-title">声调测试</div>
+            <div class="test-chars" id="tone-chars">
+                <!-- 声调测试将在这里生成 -->
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="voice-title">难发音测试</div>
+            <div class="test-chars" id="difficult-chars">
+                <!-- 难发音测试将在这里生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="speech-system.js"></script>
+    <script>
+        let speechSystem = null;
+        let isPlaying = false;
+        
+        const testData = {
+            basic: [
+                { char: '的', pinyin: 'de' },
+                { char: '一', pinyin: 'yī' },
+                { char: '是', pinyin: 'shì' },
+                { char: '了', pinyin: 'le' },
+                { char: '我', pinyin: 'wǒ' },
+                { char: '你', pinyin: 'nǐ' },
+                { char: '他', pinyin: 'tā' },
+                { char: '好', pinyin: 'hǎo' }
+            ],
+            tones: [
+                { char: '妈', pinyin: 'mā' },
+                { char: '麻', pinyin: 'má' },
+                { char: '马', pinyin: 'mǎ' },
+                { char: '骂', pinyin: 'mà' },
+                { char: '汤', pinyin: 'tāng' },
+                { char: '糖', pinyin: 'táng' },
+                { char: '躺', pinyin: 'tǎng' },
+                { char: '烫', pinyin: 'tàng' }
+            ],
+            difficult: [
+                { char: '知', pinyin: 'zhī' },
+                { char: '吃', pinyin: 'chī' },
+                { char: '诗', pinyin: 'shī' },
+                { char: '日', pinyin: 'rì' },
+                { char: '次', pinyin: 'cì' },
+                { char: '思', pinyin: 'sī' },
+                { char: '女', pinyin: 'nǚ' },
+                { char: '绿', pinyin: 'lǜ' }
+            ]
+        };
+        
+        async function initTest() {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                statusEl.innerHTML = '🔄 正在初始化纯正普通话语音系统...';
+                
+                speechSystem = new SpeechSystem();
+                await speechSystem.init();
+                
+                const status = speechSystem.getStatus();
+                
+                if (status.isSupported && status.isEnabled) {
+                    statusEl.innerHTML = `✅ 纯正普通话语音系统就绪！`;
+                    
+                    updateVoiceInfo();
+                    populateVoiceSelector();
+                    generateTestButtons();
+                } else {
+                    statusEl.innerHTML = '❌ 语音系统不可用，请检查浏览器设置';
+                }
+            } catch (error) {
+                statusEl.innerHTML = `❌ 初始化失败: ${error.message}`;
+                console.error('初始化失败:', error);
+            }
+        }
+        
+        function updateVoiceInfo() {
+            const status = speechSystem.getStatus();
+            const detailsEl = document.getElementById('voice-details');
+            
+            detailsEl.innerHTML = `
+                <strong>当前语音：</strong> ${status.currentVoice}<br>
+                <strong>语速：</strong> ${status.settings.rate}x（专为学习优化）<br>
+                <strong>音量：</strong> ${(status.settings.volume * 100).toFixed(0)}%<br>
+                <strong>可用中文语音：</strong> ${status.chineseVoiceCount} 个
+            `;
+        }
+        
+        function populateVoiceSelector() {
+            const selectEl = document.getElementById('voice-select');
+            const chineseVoices = speechSystem.getChineseVoices();
+            
+            selectEl.innerHTML = '';
+            
+            chineseVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                
+                // 判断语音质量
+                let quality = 'low';
+                let qualityText = '一般';
+                
+                if (voice.name.includes('Microsoft') && voice.name.includes('Desktop')) {
+                    quality = 'high';
+                    qualityText = '高质量';
+                } else if (voice.name.includes('Microsoft') || voice.name.includes('Google')) {
+                    quality = 'medium';
+                    qualityText = '中等';
+                }
+                
+                option.innerHTML = `${voice.name} (${voice.lang}) - ${qualityText}`;
+                
+                if (voice === speechSystem.chineseVoice) {
+                    option.selected = true;
+                }
+                selectEl.appendChild(option);
+            });
+        }
+        
+        function generateTestButtons() {
+            // 生成基础测试按钮
+            generateButtonsForSection('basic-chars', testData.basic);
+            generateButtonsForSection('tone-chars', testData.tones);
+            generateButtonsForSection('difficult-chars', testData.difficult);
+        }
+        
+        function generateButtonsForSection(containerId, data) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            data.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'char-btn';
+                btn.innerHTML = `
+                    <div>${item.char}</div>
+                    <div class="pinyin-label">${item.pinyin}</div>
+                `;
+                btn.onclick = () => playChar(item.char, item.pinyin, btn);
+                container.appendChild(btn);
+            });
+        }
+        
+        async function playChar(char, pinyin, buttonEl) {
+            if (isPlaying) return;
+            
+            try {
+                isPlaying = true;
+                buttonEl.classList.add('playing');
+                
+                // 播放拼音发音
+                await speechSystem.speakPinyin(pinyin);
+                
+                setTimeout(() => {
+                    buttonEl.classList.remove('playing');
+                    isPlaying = false;
+                }, 800);
+            } catch (error) {
+                console.error('播放失败:', error);
+                buttonEl.classList.remove('playing');
+                isPlaying = false;
+            }
+        }
+        
+        function changeVoice() {
+            const selectEl = document.getElementById('voice-select');
+            const voiceName = selectEl.value;
+            
+            if (speechSystem.switchVoice(voiceName)) {
+                updateVoiceInfo();
+                document.getElementById('status').innerHTML = `✅ 已切换到: ${voiceName}`;
+            }
+        }
+        
+        async function testAllChars() {
+            if (isPlaying) return;
+            
+            isPlaying = true;
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = '🎵 正在测试所有拼音发音...';
+            
+            const allChars = [...testData.basic, ...testData.tones, ...testData.difficult];
+            
+            for (let i = 0; i < allChars.length; i++) {
+                const item = allChars[i];
+                
+                statusEl.innerHTML = `🎵 测试中 ${i + 1}/${allChars.length}: ${item.char} (${item.pinyin})`;
+                
+                try {
+                    await speechSystem.speakPinyin(item.pinyin);
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                } catch (error) {
+                    console.error('测试失败:', error);
+                }
+            }
+            
+            isPlaying = false;
+            statusEl.innerHTML = '✅ 所有拼音测试完成！';
+        }
+        
+        async function testTonguesTwisters() {
+            if (isPlaying) return;
+            
+            const twisters = [
+                '四是四，十是十',
+                '知之为知之，不知为不知',
+                '吃葡萄不吐葡萄皮'
+            ];
+            
+            isPlaying = true;
+            const statusEl = document.getElementById('status');
+            
+            for (let i = 0; i < twisters.length; i++) {
+                statusEl.innerHTML = `🌪️ 绕口令测试 ${i + 1}/${twisters.length}: ${twisters[i]}`;
+                
+                try {
+                    await speechSystem.speakPinyin(twisters[i]);
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                } catch (error) {
+                    console.error('绕口令测试失败:', error);
+                }
+            }
+            
+            isPlaying = false;
+            statusEl.innerHTML = '✅ 绕口令测试完成！';
+        }
+        
+        // 页面加载时自动初始化
+        window.addEventListener('DOMContentLoaded', initTest);
+    </script>
+</body>
+</html>

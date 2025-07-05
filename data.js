@@ -79,6 +79,21 @@ function getPutiAdvice() {
 
 // 备用游戏数据（兼容原有系统）
 function getBackupGameData() {
+    // 使用关卡生成器创建更多关卡
+    if (typeof LevelGenerator !== 'undefined') {
+        const generator = new LevelGenerator();
+        const gameData = generator.generateLevels(20, 10); // 生成20关，每关10个字
+
+        // 确保第一关是解锁的
+        if (gameData.length > 0) {
+            gameData[0].unlocked = true;
+        }
+
+        console.log(`🎮 使用关卡生成器创建了 ${gameData.length} 个关卡`);
+        return gameData;
+    }
+
+    // 如果关卡生成器不可用，返回基础数据
     return [
         {
             level: 1,
@@ -124,6 +139,29 @@ function getBackupGameData() {
                 { id: 18, char: "大", pinyin: "dà", frequency: 99999983, rank: 18 },
                 { id: 19, char: "地", pinyin: "dì", frequency: 99999982, rank: 19 },
                 { id: 20, char: "为", pinyin: "wèi", frequency: 99999981, rank: 20 }
+            ]
+        },
+        {
+            level: 3,
+            scene: "花果山水帘洞 第3关",
+            image: "images/huaguoshan.jpg",
+            background: "美猴王继续在花果山修炼，准备学习更多汉字。",
+            story: "孙悟空开始思考如何让自己变得更强大。",
+            item: { name: '椰子', icon: '🥥' },
+            difficulty: 'easy',
+            estimatedTime: 20,
+            unlocked: false,
+            characters: [
+                { id: 21, char: "子", pinyin: "zi", frequency: 99999980, rank: 21 },
+                { id: 22, char: "中", pinyin: "zhōng", frequency: 99999979, rank: 22 },
+                { id: 23, char: "你", pinyin: "nǐ", frequency: 99999978, rank: 23 },
+                { id: 24, char: "说", pinyin: "shuō", frequency: 99999977, rank: 24 },
+                { id: 25, char: "生", pinyin: "shēng", frequency: 99999976, rank: 25 },
+                { id: 26, char: "国", pinyin: "guó", frequency: 99999975, rank: 26 },
+                { id: 27, char: "年", pinyin: "nián", frequency: 99999974, rank: 27 },
+                { id: 28, char: "着", pinyin: "zhe", frequency: 99999973, rank: 28 },
+                { id: 29, char: "就", pinyin: "jiù", frequency: 99999972, rank: 29 },
+                { id: 30, char: "那", pinyin: "nà", frequency: 99999971, rank: 30 }
             ]
         }
     ];

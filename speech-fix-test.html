@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 1em;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .test-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 20px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .test-btn:hover:not(.playing):not(.disabled) {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .test-btn.playing {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            animation: btnPulse 0.6s ease-in-out infinite;
+        }
+        
+        .test-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .controls {
+            margin: 30px 0;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 0.9em;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 语音修复测试</h1>
+        
+        <div class="info">
+            <strong>测试目标：</strong>确保同一时间只有一个语音在播放<br>
+            <strong>测试方法：</strong>快速连续点击多个按钮，观察是否有重叠播放
+        </div>
+        
+        <div class="status" id="status">正在初始化语音系统...</div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="initTest()">🔄 重新初始化</button>
+            <button class="control-btn" onclick="stopAllSpeech()">🛑 停止所有语音</button>
+            <button class="control-btn" onclick="rapidTest()">⚡ 快速连播测试</button>
+        </div>
+        
+        <div class="test-buttons" id="test-buttons">
+            <!-- 测试按钮将在这里生成 -->
+        </div>
+        
+        <div class="status" id="play-status">播放状态：空闲</div>
+    </div>
+
+    <script src="speech-system.js"></script>
+    <script>
+        let speechSystem = null;
+        
+        const testData = [
+            { text: '的', type: 'char' },
+            { text: 'de', type: 'pinyin' },
+            { text: '一', type: 'char' },
+            { text: 'yī', type: 'pinyin' },
+            { text: '是', type: 'char' },
+            { text: 'shì', type: 'pinyin' },
+            { text: '了', type: 'char' },
+            { text: 'le', type: 'pinyin' }
+        ];
+        
+        async function initTest() {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                statusEl.innerHTML = '🔄 正在初始化语音系统...';
+                
+                speechSystem = new SpeechSystem();
+                await speechSystem.init();
+                
+                const status = speechSystem.getStatus();
+                
+                if (status.isSupported && status.isEnabled) {
+                    statusEl.innerHTML = `✅ 语音系统就绪！当前语音: ${status.currentVoice}`;
+                    generateTestButtons();
+                    startStatusMonitor();
+                } else {
+                    statusEl.innerHTML = '❌ 语音系统不可用';
+                }
+            } catch (error) {
+                statusEl.innerHTML = `❌ 初始化失败: ${error.message}`;
+                console.error('初始化失败:', error);
+            }
+        }
+        
+        function generateTestButtons() {
+            const container = document.getElementById('test-buttons');
+            container.innerHTML = '';
+            
+            testData.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'test-btn';
+                btn.textContent = item.text;
+                btn.onclick = () => playText(item.text, btn);
+                btn.id = `btn-${index}`;
+                container.appendChild(btn);
+            });
+        }
+        
+        async function playText(text, buttonEl) {
+            if (!speechSystem) {
+                console.warn('语音系统未初始化');
+                return;
+            }
+            
+            // 检查播放状态
+            if (speechSystem.isPlaying) {
+                console.log(`⏸️ 语音正在播放中，跳过: ${text}`);
+                updatePlayStatus(`跳过播放: ${text} (系统忙碌)`);
+                return;
+            }
+            
+            try {
+                buttonEl.classList.add('playing');
+                updatePlayStatus(`正在播放: ${text}`);
+                
+                await speechSystem.speakPinyin(text);
+                
+                buttonEl.classList.remove('playing');
+                updatePlayStatus('播放状态：空闲');
+                
+            } catch (error) {
+                console.error('播放失败:', error);
+                buttonEl.classList.remove('playing');
+                updatePlayStatus(`播放失败: ${error.message}`);
+            }
+        }
+        
+        function updatePlayStatus(message) {
+            const statusEl = document.getElementById('play-status');
+            statusEl.textContent = message;
+            
+            // 同时显示系统状态
+            if (speechSystem) {
+                const status = speechSystem.getStatus();
+                statusEl.innerHTML = `
+                    ${message}<br>
+                    <small>系统状态: ${status.isPlaying ? '播放中' : '空闲'}</small>
+                `;
+            }
+        }
+        
+        function stopAllSpeech() {
+            if (speechSystem) {
+                speechSystem.stop();
+                updatePlayStatus('已停止所有语音播放');
+                
+                // 移除所有播放动画
+                document.querySelectorAll('.test-btn').forEach(btn => {
+                    btn.classList.remove('playing');
+                });
+            }
+        }
+        
+        async function rapidTest() {
+            if (!speechSystem) {
+                console.warn('语音系统未初始化');
+                return;
+            }
+            
+            updatePlayStatus('开始快速连播测试...');
+            
+            // 快速连续点击所有按钮
+            const buttons = document.querySelectorAll('.test-btn');
+            for (let i = 0; i < buttons.length; i++) {
+                setTimeout(() => {
+                    buttons[i].click();
+                }, i * 100); // 每100ms点击一次
+            }
+        }
+        
+        function startStatusMonitor() {
+            // 每500ms更新一次状态显示
+            setInterval(() => {
+                if (speechSystem) {
+                    const status = speechSystem.getStatus();
+                    const playStatusEl = document.getElementById('play-status');
+                    
+                    if (!playStatusEl.textContent.includes('正在播放:') && 
+                        !playStatusEl.textContent.includes('跳过播放:')) {
+                        updatePlayStatus(status.isPlaying ? '播放状态：播放中' : '播放状态：空闲');
+                    }
+                }
+            }, 500);
+        }
+        
+        // 页面加载时自动初始化
+        window.addEventListener('DOMContentLoaded', initTest);
+    </script>
+</body>
+</html>

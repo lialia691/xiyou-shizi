@@ -42,14 +42,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const sceneTitleEl = document.getElementById('scene-title');
     const sceneImageEl = document.getElementById('scene-image');
     const characterDisplayEl = document.getElementById('character-display');
+    const characterTextEl = document.getElementById('character-text');
     const optionButtons = document.querySelectorAll('.option-btn');
     const feedbackMessageEl = document.getElementById('feedback-message');
     const modalTitleEl = document.getElementById('modal-title');
     const modalMessageEl = document.getElementById('modal-message');
-    const correctSound = new Audio('sounds/correct.mp3');
-    const wrongSound = new Audio('sounds/wrong.mp3');
+    // 保留关卡完成和游戏失败音效，移除正确/错误答案提示音
     const levelCompleteSound = new Audio('sounds/level-complete.mp3');
-    const failSound = new Audio('sounds-fail-sound.mp3');
+    const failSound = new Audio('sounds/fail-sound.mp3');
     const BASE_LIVES = 3;
     let lives, score, currentLevelIndex, currentCharacterIndex, correctPinyin;
     let collectedItems = {};
@@ -90,17 +90,202 @@ window.addEventListener('DOMContentLoaded', () => {
     function startGameForLevel(levelIndex) { currentLevelIndex = levelIndex; currentCharacterIndex = 0; lives = BASE_LIVES + currentLevelIndex; loadQuestion(); routeMapView.classList.add('hidden'); gameView.classList.remove('hidden'); }
     
     // --- 游戏内部逻辑 (这部分完全不变) ---
-    function loadQuestion() { if (currentCharacterIndex !== this.lastLoadedCharacterIndex) { hasMadeMistakeOnCurrentQuestion = false; this.lastLoadedCharacterIndex = currentCharacterIndex; } const levelData = gameData[currentLevelIndex]; const characterData = levelData.characters[currentCharacterIndex]; sceneTitleEl.textContent = levelData.scene; characterDisplayEl.textContent = characterData.char; feedbackMessageEl.textContent = '请选择正确的拼音'; feedbackMessageEl.style.color = '#333'; updateLivesDisplay(); updateScoreDisplay(); progressTrackerEl.textContent = `${currentCharacterIndex + 1} / ${levelData.characters.length}`; if (levelData.image) { sceneImageEl.src = levelData.image; sceneImageEl.style.display = 'block'; } else { sceneImageEl.style.display = 'none'; } optionButtons.forEach(btn => { btn.disabled = false; btn.classList.remove('correct-option', 'wrong-option'); }); generateQuizOptions(characterData); }
+    function loadQuestion() {
+        if (currentCharacterIndex !== this.lastLoadedCharacterIndex) {
+            hasMadeMistakeOnCurrentQuestion = false;
+            this.lastLoadedCharacterIndex = currentCharacterIndex;
+        }
+
+        const levelData = gameData[currentLevelIndex];
+        const characterData = levelData.characters[currentCharacterIndex];
+
+        // 更新场景信息
+        sceneTitleEl.textContent = levelData.scene;
+
+        // 更新汉字显示
+        characterTextEl.textContent = characterData.char;
+
+        // 更新反馈信息
+        feedbackMessageEl.textContent = '请选择正确的拼音';
+        feedbackMessageEl.style.color = '#333';
+
+        // 更新显示
+        updateLivesDisplay();
+        updateScoreDisplay();
+        progressTrackerEl.textContent = `${currentCharacterIndex + 1} / ${levelData.characters.length}`;
+
+        // 更新场景图片
+        if (levelData.image) {
+            sceneImageEl.src = levelData.image;
+            sceneImageEl.style.display = 'block';
+        } else {
+            sceneImageEl.style.display = 'none';
+        }
+
+        // 重置选项按钮
+        optionButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('correct-option', 'wrong-option');
+        });
+
+        // 生成选择题选项
+        generateQuizOptions(characterData);
+    }
     loadQuestion.lastLoadedCharacterIndex = -1;
-    function handleOptionClick(event) { const clickedButton = event.target; const clickedPinyin = clickedButton.dataset.pinyin; optionButtons.forEach(btn => btn.disabled = true); if (clickedPinyin === correctPinyin) { correctSound.play(); clickedButton.classList.add('correct-option'); characterDisplayEl.classList.add('correct'); if (!hasMadeMistakeOnCurrentQuestion) { score += 1; const currentItem = gameData[currentLevelIndex].item; collectedItems[currentItem.name]++; updateScoreDisplay(); feedbackMessageEl.textContent = `答对了！得1分和一个${currentItem.icon}`; feedbackMessageEl.style.color = 'green'; } else { feedbackMessageEl.textContent = '答对了，继续上路！（本题不计分）'; feedbackMessageEl.style.color = 'blue'; } setTimeout(() => { characterDisplayEl.classList.remove('correct'); currentCharacterIndex++; const currentLevelData = gameData[currentLevelIndex]; if (currentCharacterIndex >= currentLevelData.characters.length) { showLevelCompleteModal(); } else { loadQuestion(); } }, 1200); } else { wrongSound.play(); hasMadeMistakeOnCurrentQuestion = true; lives--; score = score - 1; const currentItem = gameData[currentLevelIndex].item; collectedItems[currentItem.name] = collectedItems[currentItem.name] - 1; updateLivesDisplay(); updateScoreDisplay(); clickedButton.classList.add('wrong-option'); const correctButton = [...optionButtons].find(btn => btn.dataset.pinyin === correctPinyin); if (correctButton) correctButton.classList.add('correct-option'); feedbackMessageEl.textContent = `答错了！扣1分和1个${currentItem.icon}`; feedbackMessageEl.style.color = 'red'; setTimeout(() => { if (lives <= 0) { failSound.play(); failModal.classList.remove('hidden'); } else { loadQuestion(); } }, 2000); } }
-    function showLevelCompleteModal() { levelCompleteSound.play(); let itemsSummary = Object.keys(collectedItems).filter(key => collectedItems[key] > 0).map(key => { const icon = gameData.find(level => level.item.name === key).item.icon; return `${collectedItems[key]}个${icon}`; }).join('，'); modalTitleEl.textContent = `恭喜过此关!徒儿，取经路上等你`; modalMessageEl.innerHTML = `<h3>当前总分: ${score}</h3><p>已获得: ${itemsSummary}</p>`; levelCompleteModal.classList.remove('hidden'); }
+
+
+
+    // 播放拼音发音
+    async function playPinyinOnly(pinyin) {
+        try {
+            // 检查语音系统状态
+            if (!speechSystem || speechSystem.isPlaying) {
+                console.log('⏸️ 语音系统忙碌中，跳过播放');
+                return;
+            }
+
+            await speechSystem.speakPinyin(pinyin);
+        } catch (error) {
+            console.error('播放拼音失败:', error);
+        }
+    }
+
+    // 更新选项生成函数 - 只显示拼音选项
+    function generateQuizOptions(characterData) {
+        correctPinyin = characterData.pinyin;
+
+        // 生成干扰项
+        const allPinyins = gameData.flatMap(level =>
+            level.characters.map(char => char.pinyin)
+        );
+
+        // 去重并过滤掉正确答案
+        const wrongOptions = [...new Set(allPinyins)]
+            .filter(pinyin => pinyin !== correctPinyin)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3);
+
+        // 组合所有选项
+        const allOptions = [correctPinyin, ...wrongOptions]
+            .sort(() => Math.random() - 0.5);
+
+        // 更新按钮显示 - 只显示拼音
+        optionButtons.forEach((btn, index) => {
+            const pinyin = allOptions[index];
+            btn.dataset.pinyin = pinyin;
+
+            // 清空按钮内容，只显示拼音
+            btn.innerHTML = `<span class="option-pinyin-only">${pinyin}</span>`;
+
+            // 为按钮添加样式类
+            btn.classList.add('pinyin-option');
+        });
+    }
+    function handleOptionClick(event) {
+        const clickedButton = event.target.closest('.option-btn');
+        const clickedPinyin = clickedButton.dataset.pinyin;
+
+        // 检查是否正在播放，避免重复播放
+        if (speechSystem && speechSystem.isPlaying) {
+            console.log('⏸️ 语音正在播放中，跳过新的播放请求');
+            return;
+        }
+
+        // 🔊 播放点击的拼音发音并添加视觉反馈
+        if (clickedPinyin && speechSystem) {
+            clickedButton.classList.add('playing');
+            playPinyinOnly(clickedPinyin);
+
+            // 移除播放动画
+            setTimeout(() => {
+                clickedButton.classList.remove('playing');
+            }, 600);
+        }
+
+        // 短暂延迟后处理答题逻辑，让用户听到发音
+        setTimeout(() => {
+            // 禁用所有按钮
+            optionButtons.forEach(btn => btn.disabled = true);
+
+            if (clickedPinyin === correctPinyin) {
+                // 答对了 - 不播放额外声音
+                clickedButton.classList.add('correct-option');
+                characterDisplayEl.classList.add('correct');
+
+                if (!hasMadeMistakeOnCurrentQuestion) {
+                    score += 1;
+                    const currentItem = gameData[currentLevelIndex].item;
+                    collectedItems[currentItem.name]++;
+                    updateScoreDisplay();
+                    feedbackMessageEl.textContent = `答对了！得1分和一个${currentItem.icon}`;
+                    feedbackMessageEl.style.color = 'green';
+                } else {
+                    feedbackMessageEl.textContent = '答对了，继续上路！（本题不计分）';
+                    feedbackMessageEl.style.color = 'blue';
+                }
+
+                setTimeout(() => {
+                    characterDisplayEl.classList.remove('correct');
+                    currentCharacterIndex++;
+                    const currentLevelData = gameData[currentLevelIndex];
+                    if (currentCharacterIndex >= currentLevelData.characters.length) {
+                        showLevelCompleteModal();
+                    } else {
+                        loadQuestion();
+                    }
+                }, 1200);
+            } else {
+                // 答错了 - 不播放额外声音
+                hasMadeMistakeOnCurrentQuestion = true;
+                lives--;
+                score = score - 1;
+                const currentItem = gameData[currentLevelIndex].item;
+                collectedItems[currentItem.name] = collectedItems[currentItem.name] - 1;
+                updateLivesDisplay();
+                updateScoreDisplay();
+                clickedButton.classList.add('wrong-option');
+
+                const correctButton = [...optionButtons].find(btn => btn.dataset.pinyin === correctPinyin);
+                if (correctButton) correctButton.classList.add('correct-option');
+
+                feedbackMessageEl.textContent = `答错了！扣1分和1个${currentItem.icon}`;
+                feedbackMessageEl.style.color = 'red';
+
+                setTimeout(() => {
+                    if (lives <= 0) {
+                        // 播放游戏失败音效
+                        failSound.play();
+                        failModal.classList.remove('hidden');
+                    } else {
+                        loadQuestion();
+                    }
+                }, 2000);
+            }
+        }, 300); // 300ms延迟，让用户听到发音
+    }
+    function showLevelCompleteModal() {
+        // 播放关卡完成音效
+        levelCompleteSound.play();
+
+        let itemsSummary = Object.keys(collectedItems).filter(key => collectedItems[key] > 0).map(key => {
+            const icon = gameData.find(level => level.item.name === key).item.icon;
+            return `${collectedItems[key]}个${icon}`;
+        }).join('，');
+        modalTitleEl.textContent = `恭喜过此关!徒儿，取经路上等你`;
+        modalMessageEl.innerHTML = `<h3>当前总分: ${score}</h3><p>已获得: ${itemsSummary}</p>`;
+        levelCompleteModal.classList.remove('hidden');
+    }
     function updateLivesDisplay() { livesTrackerEl.textContent = '❤️'.repeat(lives); }
     function updateScoreDisplay() { scoreTrackerEl.textContent = `分数: ${score}`; }
-    function generateQuizOptions(correctCharacter) { correctPinyin = correctCharacter.pinyin; let options = [correctPinyin]; const allCharacters = gameData.flatMap(level => level.characters); while (options.length < 4) { const randomIndex = Math.floor(Math.random() * allCharacters.length); const randomPinyin = allCharacters[randomIndex].pinyin; if (!options.includes(randomPinyin)) { options.push(randomPinyin) } } options.sort(() => Math.random() - 0.5); optionButtons.forEach((btn, index) => { btn.textContent = options[index]; btn.dataset.pinyin = options[index] }); }
+
 
     // --- 【应用新方法】启动与事件绑定 ---
     async function initializeApp() {
         score = 0;
+
+        // 初始化语音系统
+        console.log('🔊 正在初始化语音系统...');
+        await initSpeechSystem();
 
         // 初始化AI菩提系统和数据处理器
         console.log('🚀 正在初始化西游识字智能系统...');

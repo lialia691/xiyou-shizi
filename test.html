@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西游识字 - 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .level-card {
+            background: #e9ecef;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .character-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .character-item {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧘‍♂️ 西游识字 - AI菩提系统测试</h1>
+    
+    <div class="test-section">
+        <h2 class="test-title">1. 系统初始化测试</h2>
+        <button onclick="testSystemInitialization()">测试系统初始化</button>
+        <div id="init-result" class="test-result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-title">2. 关卡生成器测试</h2>
+        <button onclick="testLevelGenerator()">测试关卡生成</button>
+        <div id="level-result" class="test-result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-title">3. AI菩提系统测试</h2>
+        <button onclick="testAIPutiSystem()">测试AI菩提建议</button>
+        <div id="puti-result" class="test-result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-title">4. 数据处理器测试</h2>
+        <button onclick="testDataProcessor()">测试数据处理</button>
+        <div id="data-result" class="test-result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-title">5. 汉字数据测试</h2>
+        <button onclick="testChineseData()">测试汉字数据加载</button>
+        <div id="chinese-result" class="test-result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-title">6. 语音系统测试</h2>
+        <button onclick="testSpeechSystem()">测试语音发音</button>
+        <button onclick="testPinyinPronunciation()">测试拼音发音</button>
+        <div id="speech-result" class="test-result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-title">7. 完整流程测试</h2>
+        <button onclick="testCompleteFlow()">测试完整学习流程</button>
+        <div id="flow-result" class="test-result" style="display:none;"></div>
+    </div>
+
+    <!-- 引入所有必要的脚本 -->
+    <script src="speech-system.js"></script>
+    <script src="ai-puti-system.js"></script>
+    <script src="data-processor.js"></script>
+    <script src="generate-levels.js"></script>
+    <script src="data.js"></script>
+
+    <script>
+        // 测试函数
+        async function testSystemInitialization() {
+            const resultDiv = document.getElementById('init-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+            
+            try {
+                resultDiv.innerHTML = '正在初始化系统...';
+                
+                // 测试关卡生成器
+                const generator = new LevelGenerator();
+                const testLevels = generator.generateLevels(5, 5);
+                
+                // 测试AI菩提系统
+                const aiPuti = new AIPutiSystem();
+                await aiPuti.initialize();
+                
+                // 测试数据处理器
+                const processor = new DataProcessor();
+                await processor.initialize();
+                
+                resultDiv.innerHTML = `
+                    ✅ 系统初始化成功！<br>
+                    📚 关卡生成器：已创建 ${testLevels.length} 个测试关卡<br>
+                    🧘‍♂️ AI菩提系统：初始化完成<br>
+                    🔧 数据处理器：初始化完成
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ 初始化失败：${error.message}`;
+            }
+        }
+
+        function testLevelGenerator() {
+            const resultDiv = document.getElementById('level-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+            
+            try {
+                const generator = new LevelGenerator();
+                const levels = generator.generateLevels(10, 8);
+                
+                let html = `✅ 成功生成 ${levels.length} 个关卡：<br><br>`;
+                
+                levels.slice(0, 3).forEach(level => {
+                    html += `
+                        <div class="level-card">
+                            <strong>关卡 ${level.level}：${level.scene}</strong><br>
+                            难度：${level.difficulty} | 预计时间：${level.estimatedTime}分钟<br>
+                            道具：${level.item.icon} ${level.item.name}<br>
+                            <div class="character-list">
+                                ${level.characters.map(char => 
+                                    `<span class="character-item">${char.char} (${char.pinyin})</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (levels.length > 3) {
+                    html += `<p>... 还有 ${levels.length - 3} 个关卡</p>`;
+                }
+                
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ 关卡生成失败：${error.message}`;
+            }
+        }
+
+        async function testAIPutiSystem() {
+            const resultDiv = document.getElementById('puti-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+            
+            try {
+                const aiPuti = new AIPutiSystem();
+                await aiPuti.initialize();
+                
+                // 模拟一些学习数据
+                aiPuti.recordLearningResult('char_1', true, 2000);
+                aiPuti.recordLearningResult('char_2', false, 5000);
+                aiPuti.recordLearningResult('char_3', true, 1500);
+                
+                const recommendation = aiPuti.recommendNextLearning();
+                const advice = aiPuti.generatePutiAdvice();
+                const stats = aiPuti.getUserLearningStats();
+                
+                resultDiv.innerHTML = `
+                    ✅ AI菩提系统测试成功！<br><br>
+                    <strong>📊 学习统计：</strong><br>
+                    总字符数：${stats.totalCharacters}<br>
+                    掌握字符数：${stats.uniqueCharsLearned}<br>
+                    平均正确率：${(stats.averageCorrectRate * 100).toFixed(1)}%<br><br>
+                    
+                    <strong>🎯 推荐内容：</strong><br>
+                    类型：${recommendation.type}<br>
+                    原因：${recommendation.reason}<br>
+                    预计时间：${recommendation.estimatedTime}分钟<br><br>
+                    
+                    <strong>💡 智能建议：</strong><br>
+                    ${advice.map(item => `${item.icon} ${item.message}`).join('<br>')}
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ AI菩提系统测试失败：${error.message}`;
+            }
+        }
+
+        async function testDataProcessor() {
+            const resultDiv = document.getElementById('data-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+            
+            try {
+                const processor = new DataProcessor();
+                await processor.initialize();
+                
+                const stats = processor.getLearningStatistics();
+                const highFreqChars = processor.getHighFrequencyCharacters(1, 10);
+                
+                resultDiv.innerHTML = `
+                    ✅ 数据处理器测试成功！<br><br>
+                    <strong>📈 统计信息：</strong><br>
+                    总字符数：${stats.totalCharacters}<br>
+                    总关卡数：${stats.totalLevels}<br>
+                    平均每关字符数：${stats.averageCharactersPerLevel}<br><br>
+                    
+                    <strong>🔤 高频汉字示例（前10个）：</strong><br>
+                    <div class="character-list">
+                        ${highFreqChars.map(char => 
+                            `<span class="character-item">${char.char} (${char.pinyin})</span>`
+                        ).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ 数据处理器测试失败：${error.message}`;
+            }
+        }
+
+        async function testChineseData() {
+            const resultDiv = document.getElementById('chinese-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+            
+            try {
+                resultDiv.innerHTML = '正在加载汉字数据...';
+                
+                const response = await fetch('chinaword2500.json');
+                const chineseWords = await response.json();
+                
+                const sampleWords = chineseWords.slice(0, 20);
+                
+                resultDiv.innerHTML = `
+                    ✅ 汉字数据加载成功！<br><br>
+                    <strong>📚 数据概览：</strong><br>
+                    总汉字数：${chineseWords.length}<br><br>
+                    
+                    <strong>🔤 前20个高频汉字：</strong><br>
+                    <div class="character-list">
+                        ${sampleWords.map(word => 
+                            `<span class="character-item">${word.汉字} (${word.注音})</span>`
+                        ).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ 汉字数据加载失败：${error.message}`;
+            }
+        }
+
+        async function testSpeechSystem() {
+            const resultDiv = document.getElementById('speech-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+
+            try {
+                resultDiv.innerHTML = '正在测试语音系统...';
+
+                // 初始化语音系统
+                const speechSys = await initSpeechSystem();
+                const status = speechSys.getStatus();
+
+                resultDiv.innerHTML = `
+                    ✅ 语音系统测试成功！<br><br>
+                    <strong>🔊 系统状态：</strong><br>
+                    浏览器支持：${status.isSupported ? '✅' : '❌'}<br>
+                    功能启用：${status.isEnabled ? '✅' : '❌'}<br>
+                    可用语音数：${status.voiceCount}<br>
+                    中文语音数：${status.chineseVoiceCount}<br>
+                    当前语音：${status.currentVoice}<br><br>
+
+                    <strong>🎛️ 语音设置：</strong><br>
+                    音量：${(status.settings.volume * 100).toFixed(0)}%<br>
+                    语速：${status.settings.rate.toFixed(1)}x<br>
+                    音调：${status.settings.pitch.toFixed(1)}<br><br>
+
+                    <button onclick="speechSys.test()" style="margin-top:10px;">🧪 播放测试音频</button>
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ 语音系统测试失败：${error.message}`;
+            }
+        }
+
+        async function testPinyinPronunciation() {
+            const resultDiv = document.getElementById('speech-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+
+            try {
+                resultDiv.innerHTML = '正在测试拼音发音...';
+
+                await initSpeechSystem();
+
+                const testChars = [
+                    { char: '你', pinyin: 'nǐ' },
+                    { char: '好', pinyin: 'hǎo' },
+                    { char: '学', pinyin: 'xué' },
+                    { char: '习', pinyin: 'xí' },
+                    { char: '汉', pinyin: 'hàn' },
+                    { char: '字', pinyin: 'zì' }
+                ];
+
+                let html = `
+                    ✅ 拼音发音测试准备完成！<br><br>
+                    <strong>� 点击下面的拼音听发音：</strong><br><br>
+                `;
+
+                testChars.forEach(item => {
+                    html += `
+                        <div style="display:inline-block; margin:10px; text-align:center;">
+                            <div style="font-size:2em; font-weight:bold; color:#d9534f;">${item.char}</div>
+                            <div style="font-size:1.2em; color:#666; cursor:pointer; padding:5px 10px; background:rgba(102,126,234,0.1); border-radius:15px; margin-top:5px;"
+                                 onclick="playCharacter('${item.char}', '${item.pinyin}')"
+                                 title="点击听发音">${item.pinyin}</div>
+                        </div>
+                    `;
+                });
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ 拼音发音测试失败：${error.message}`;
+            }
+        }
+
+        async function testCompleteFlow() {
+            const resultDiv = document.getElementById('flow-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'test-result';
+
+            try {
+                resultDiv.innerHTML = '正在测试完整流程...';
+
+                // 1. 初始化语音系统
+                await initSpeechSystem();
+
+                // 2. 初始化所有系统
+                await initializeDataSystem();
+
+                // 3. 获取游戏数据
+                const gameData = getGameData();
+
+                // 4. 获取AI推荐
+                const recommendation = getPutiRecommendation();
+
+                // 5. 获取AI建议
+                const advice = getPutiAdvice();
+
+                resultDiv.innerHTML = `
+                    ✅ 完整流程测试成功！<br><br>
+                    <strong>� 语音系统：</strong> 已初始化<br>
+                    <strong>🎮 游戏数据：</strong> 已加载 ${gameData.length} 个关卡<br>
+                    <strong>🧘‍♂️ AI菩提推荐：</strong> ${recommendation.reason}<br>
+                    <strong>💡 智能建议：</strong> ${advice.length} 条建议<br><br>
+
+                    <strong>🎯 系统状态：</strong> 所有模块正常运行，包括语音功能
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ 完整流程测试失败：${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
