@@ -51,6 +51,7 @@ class DataProcessor {
 
             // 检测是否为本地文件协议
             const isLocalFile = window.location.protocol === 'file:';
+            console.log('Protocol:', window.location.protocol);
 
             if (isLocalFile) {
                 console.log('🔍 检测到本地文件访问，使用内置故事模板');
