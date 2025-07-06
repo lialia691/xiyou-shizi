@@ -677,13 +677,16 @@ const App = {
 
             // 移动端音频激活监听
             if (Utils.isMobileDevice()) {
-                document.addEventListener('touchstart', () => {
+                const activate = () => {
                     this.activateAudioContext();
-                }, { once: true, passive: true });
-
-                document.addEventListener('click', () => {
-                    this.activateAudioContext();
-                }, { once: true });
+                    // 成功激活后移除监听器
+                    document.body.removeEventListener('touchstart', activate);
+                    document.body.removeEventListener('click', activate);
+                };
+                
+                console.log('📱 设置移动端音频激活监听器');
+                document.body.addEventListener('touchstart', activate, { once: true, passive: true });
+                document.body.addEventListener('click', activate, { once: true });
             }
 
             // 显示主界面
