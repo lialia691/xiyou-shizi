@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>得分配置测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .config-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-btn:hover { background: #0056b3; }
+        .result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+        .score-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎯 得分配置测试</h1>
+        <p>测试 app-config.js 中的得分配置是否正确应用到游戏逻辑</p>
+        
+        <h3>📋 当前得分配置</h3>
+        <div class="config-display" id="config-display">
+            正在加载配置...
+        </div>
+        
+        <h3>🎮 模拟游戏状态</h3>
+        <div class="score-display" id="score-display">
+            当前分数: 0
+        </div>
+        
+        <h3>🧪 测试操作</h3>
+        <button class="test-btn" onclick="testCorrectAnswer()">模拟答对一题</button>
+        <button class="test-btn" onclick="testWrongAnswer()">模拟答错一题</button>
+        <button class="test-btn" onclick="testLevelComplete()">模拟通关奖励</button>
+        <button class="test-btn" onclick="resetScore()">重置分数</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <!-- 加载必要的脚本 -->
+    <script src="../src/config/app-config.js"></script>
+
+    <script>
+        // 模拟 GameState 对象
+        const MockGameState = {
+            score: 0,
+            
+            increaseScore() {
+                // 🔧 使用统一配置中的得分值，而不是硬编码
+                const scorePerCorrect = (typeof getConfig !== 'undefined') ? getConfig('game.scorePerCorrect') : 10;
+                this.score += scorePerCorrect;
+                return this.score;
+            },
+
+            decreaseScore() {
+                // 🔧 扣分也使用配置中的值
+                const scorePerCorrect = (typeof getConfig !== 'undefined') ? getConfig('game.scorePerCorrect') : 10;
+                this.score = Math.max(0, this.score - scorePerCorrect);
+                return this.score;
+            },
+
+            addLevelBonus() {
+                // 🎉 给予通关奖励分数
+                const scorePerLevel = (typeof getConfig !== 'undefined') ? getConfig('game.scorePerLevel') : 100;
+                this.score += scorePerLevel;
+                return this.score;
+            },
+
+            reset() {
+                this.score = 0;
+                return this.score;
+            }
+        };
+
+        // 显示配置信息
+        function displayConfig() {
+            const configDisplay = document.getElementById('config-display');
+            const gameConfig = getConfig('game');
+            
+            configDisplay.innerHTML = `
+<strong>app-config.js 中的得分配置:</strong>
+scorePerCorrect: ${gameConfig.scorePerCorrect} (每题正确得分)
+scorePerLevel: ${gameConfig.scorePerLevel} (通关奖励分数)
+
+<strong>其他游戏配置:</strong>
+charactersPerLevel: ${gameConfig.charactersPerLevel} (每关汉字数)
+maxLives: ${gameConfig.maxLives} (最大生命值)
+            `;
+        }
+
+        // 更新分数显示
+        function updateScoreDisplay() {
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.textContent = `当前分数: ${MockGameState.score}`;
+        }
+
+        // 添加测试结果
+        function addResult(type, message) {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        // 测试答对一题
+        function testCorrectAnswer() {
+            const oldScore = MockGameState.score;
+            const newScore = MockGameState.increaseScore();
+            const scoreGained = newScore - oldScore;
+            
+            updateScoreDisplay();
+            addResult('success', `✅ 答对一题！获得 ${scoreGained} 分 (${oldScore} → ${newScore})`);
+            
+            const expectedScore = getConfig('game.scorePerCorrect');
+            if (scoreGained === expectedScore) {
+                addResult('success', `🎯 得分配置正确应用！期望: ${expectedScore}, 实际: ${scoreGained}`);
+            } else {
+                addResult('warning', `⚠️ 得分配置未正确应用！期望: ${expectedScore}, 实际: ${scoreGained}`);
+            }
+        }
+
+        // 测试答错一题
+        function testWrongAnswer() {
+            const oldScore = MockGameState.score;
+            const newScore = MockGameState.decreaseScore();
+            const scoreLost = oldScore - newScore;
+            
+            updateScoreDisplay();
+            addResult('warning', `❌ 答错一题！扣除 ${scoreLost} 分 (${oldScore} → ${newScore})`);
+        }
+
+        // 测试通关奖励
+        function testLevelComplete() {
+            const oldScore = MockGameState.score;
+            const newScore = MockGameState.addLevelBonus();
+            const bonusScore = newScore - oldScore;
+            
+            updateScoreDisplay();
+            addResult('success', `🎉 通关奖励！获得 ${bonusScore} 分 (${oldScore} → ${newScore})`);
+            
+            const expectedBonus = getConfig('game.scorePerLevel');
+            if (bonusScore === expectedBonus) {
+                addResult('success', `🎯 通关奖励配置正确应用！期望: ${expectedBonus}, 实际: ${bonusScore}`);
+            } else {
+                addResult('warning', `⚠️ 通关奖励配置未正确应用！期望: ${expectedBonus}, 实际: ${bonusScore}`);
+            }
+        }
+
+        // 重置分数
+        function resetScore() {
+            MockGameState.reset();
+            updateScoreDisplay();
+            addResult('info', '🔄 分数已重置为 0');
+        }
+
+        // 页面加载完成后显示配置
+        window.addEventListener('load', () => {
+            displayConfig();
+            updateScoreDisplay();
+            addResult('info', '页面加载完成，配置已显示');
+            
+            // 自动测试一次
+            setTimeout(() => {
+                addResult('info', '🚀 开始自动测试...');
+                testCorrectAnswer();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

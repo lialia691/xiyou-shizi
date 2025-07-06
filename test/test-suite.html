@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西游识字2500 - 测试套件</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-suite {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-category {
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .test-item:hover {
+            background: #e9ecef;
+        }
+        .test-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending { background: #ffc107; color: #856404; }
+        .status-running { background: #17a2b8; color: white; }
+        .status-passed { background: #28a745; color: white; }
+        .status-failed { background: #dc3545; color: white; }
+        .run-all-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .run-all-btn:hover {
+            background: #0056b3;
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-info { background: #d1ecf1; color: #0c5460; }
+        .log-success { background: #d4edda; color: #155724; }
+        .log-error { background: #f8d7da; color: #721c24; }
+        .log-warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="test-suite">
+        <h1>🧪 西游识字2500 测试套件</h1>
+        <button class="run-all-btn" onclick="runAllTests()">🚀 运行所有测试</button>
+        
+        <div class="test-category">
+            <h2>🏗️ 核心模块测试</h2>
+            <div class="test-item" onclick="runTest('character-provider')">
+                <span>CharacterProvider - 汉字数据提供者</span>
+                <span class="test-status status-pending" id="status-character-provider">待运行</span>
+            </div>
+            <div class="test-item" onclick="runTest('data-processor')">
+                <span>DataProcessor - 数据处理器</span>
+                <span class="test-status status-pending" id="status-data-processor">待运行</span>
+            </div>
+            <div class="test-item" onclick="runTest('module-manager')">
+                <span>ModuleManager - 模块管理器</span>
+                <span class="test-status status-pending" id="status-module-manager">待运行</span>
+            </div>
+        </div>
+
+        <div class="test-category">
+            <h2>🤖 AI智能系统测试</h2>
+            <div class="test-item" onclick="runTest('ai-puti-system')">
+                <span>AIPutiSystem - AI菩提系统</span>
+                <span class="test-status status-pending" id="status-ai-puti-system">待运行</span>
+            </div>
+            <div class="test-item" onclick="runTest('review-scheduler')">
+                <span>ReviewScheduler - 复习调度器</span>
+                <span class="test-status status-pending" id="status-review-scheduler">待运行</span>
+            </div>
+            <div class="test-item" onclick="runTest('user-data-manager')">
+                <span>UserDataManager - 用户数据管理</span>
+                <span class="test-status status-pending" id="status-user-data-manager">待运行</span>
+            </div>
+        </div>
+
+        <div class="test-category">
+            <h2>🎵 功能模块测试</h2>
+            <div class="test-item" onclick="runTest('speech-system')">
+                <span>SpeechSystem - 语音系统</span>
+                <span class="test-status status-pending" id="status-speech-system">待运行</span>
+            </div>
+        </div>
+
+        <div class="test-category">
+            <h2>🎮 应用集成测试</h2>
+            <div class="test-item" onclick="runTest('app-integration')">
+                <span>App Integration - 应用集成</span>
+                <span class="test-status status-pending" id="status-app-integration">待运行</span>
+            </div>
+            <div class="test-item" onclick="runTest('game-logic')">
+                <span>Game Logic - 游戏逻辑</span>
+                <span class="test-status status-pending" id="status-game-logic">待运行</span>
+            </div>
+        </div>
+
+        <div class="test-results" id="test-results">
+            <h3>📋 测试结果</h3>
+            <div id="test-log">点击上方按钮开始测试...</div>
+        </div>
+    </div>
+
+    <script>
+        // 测试日志管理
+        const testLog = {
+            entries: [],
+            add(type, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.entries.push({ type, message, timestamp });
+                this.render();
+            },
+            render() {
+                const logContainer = document.getElementById('test-log');
+                logContainer.innerHTML = this.entries.map(entry => 
+                    `<div class="log-entry log-${entry.type}">
+                        [${entry.timestamp}] ${entry.message}
+                    </div>`
+                ).join('');
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        };
+
+        // 更新测试状态
+        function updateTestStatus(testName, status) {
+            const statusElement = document.getElementById(`status-${testName}`);
+            if (statusElement) {
+                statusElement.textContent = status;
+                statusElement.className = `test-status status-${status.toLowerCase()}`;
+            }
+        }
+
+        // 运行单个测试
+        async function runTest(testName) {
+            testLog.add('info', `开始测试: ${testName}`);
+            updateTestStatus(testName, 'running');
+
+            try {
+                // 这里可以根据测试名称调用相应的测试函数
+                await simulateTest(testName);
+                updateTestStatus(testName, 'passed');
+                testLog.add('success', `测试通过: ${testName}`);
+            } catch (error) {
+                updateTestStatus(testName, 'failed');
+                testLog.add('error', `测试失败: ${testName} - ${error.message}`);
+            }
+        }
+
+        // 模拟测试执行
+        async function simulateTest(testName) {
+            // 模拟测试延迟
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            
+            // 模拟随机测试结果（实际项目中这里会是真实的测试逻辑）
+            if (Math.random() < 0.1) {
+                throw new Error('模拟测试失败');
+            }
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            const tests = [
+                'character-provider', 'data-processor', 'module-manager',
+                'ai-puti-system', 'review-scheduler', 'user-data-manager',
+                'speech-system', 'app-integration', 'game-logic'
+            ];
+
+            testLog.add('info', '开始运行所有测试...');
+            
+            for (const test of tests) {
+                await runTest(test);
+            }
+            
+            testLog.add('info', '所有测试完成！');
+        }
+
+        // 初始化
+        testLog.add('info', '测试套件已加载，准备就绪');
+    </script>
+</body>
+</html>

@@ -108,21 +108,26 @@
     </div>
 
     <!-- 核心脚本加载 - 按依赖顺序排列 -->
+    <!-- 配置文件 -->
+    <script src="src/config/app-config.js?v=1" defer></script>
+
+    <!-- 模块管理器 -->
+    <script src="src/core/module-manager.js?v=1" defer></script>
+
     <!-- 基础系统 -->
-    <script src="speech-system.js?v=8" defer></script>
-    <script src="character-provider.js?v=8" defer></script>
+    <script src="src/features/speech-system.js?v=8" defer></script>
+    <script src="src/core/character-provider.js?v=8" defer></script>
 
     <!-- AI和数据管理 -->
-    <script src="ai-puti-system.js?v=7" defer></script>
-    <script src="user-data-manager.js?v=7" defer></script>
-    <script src="review-scheduler.js?v=7" defer></script>
+    <script src="src/ai/user-data-manager.js?v=7" defer></script>
+    <script src="src/ai/review-scheduler.js?v=7" defer></script>
+    <script src="src/ai/ai-puti-system.js?v=7" defer></script>
 
-    <!-- 数据处理和生成 -->
-    <script src="data-processor.js?v=9" defer></script>
-    <script src="generate-levels.js?v=7" defer></script>
+    <!-- 数据处理 -->
+    <script src="src/core/data-processor.js?v=9" defer></script>
 
     <!-- 主应用 -->
-    <script src="app.js?v=8" defer></script>
+    <script src="src/core/app.js?v=8" defer></script>
 
 </body>
 </html>

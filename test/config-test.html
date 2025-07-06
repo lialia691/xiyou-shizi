@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置测试 - 语音系统</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .config-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-btn:hover { background: #0056b3; }
+        .result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎵 语音系统配置测试</h1>
+        <p>测试 app-config.js 中的配置是否正确应用到 SpeechSystem</p>
+        
+        <h3>📋 当前配置</h3>
+        <div class="config-display" id="config-display">
+            正在加载配置...
+        </div>
+        
+        <h3>🧪 测试操作</h3>
+        <button class="test-btn" onclick="testSpeechConfig()">测试语音配置</button>
+        <button class="test-btn" onclick="testSpeechRate()">测试语速设置</button>
+        <button class="test-btn" onclick="playTestAudio()">播放测试音频</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <!-- 加载必要的脚本 -->
+    <script src="../src/config/app-config.js"></script>
+    <script src="../src/core/character-provider.js"></script>
+    <script src="../src/features/speech-system.js"></script>
+
+    <script>
+        let speechSystem = null;
+        let characterProvider = null;
+
+        // 显示配置信息
+        function displayConfig() {
+            const configDisplay = document.getElementById('config-display');
+            const speechConfig = getConfig('speech');
+            
+            configDisplay.innerHTML = `
+<strong>app-config.js 中的语音配置:</strong>
+volume: ${speechConfig.volume}
+rate: ${speechConfig.rate}
+pitch: ${speechConfig.pitch}
+preferredVoices: ${speechConfig.preferredVoices.length} 个语音选项
+
+<strong>首选语音列表:</strong>
+${speechConfig.preferredVoices.map((voice, index) => `${index + 1}. ${voice}`).join('\n')}
+            `;
+        }
+
+        // 添加测试结果
+        function addResult(type, message) {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        // 测试语音配置
+        async function testSpeechConfig() {
+            addResult('info', '开始测试语音系统配置...');
+            
+            try {
+                // 创建 CharacterProvider
+                if (!characterProvider) {
+                    characterProvider = new CharacterProvider();
+                    await characterProvider.load();
+                    addResult('success', '✅ CharacterProvider 加载成功');
+                }
+                
+                // 创建 SpeechSystem
+                speechSystem = new SpeechSystem(characterProvider);
+                await speechSystem.init();
+                
+                // 检查配置是否正确应用
+                const expectedRate = getConfig('speech.rate');
+                const actualRate = speechSystem.rate;
+                
+                addResult('info', `期望语速: ${expectedRate}`);
+                addResult('info', `实际语速: ${actualRate}`);
+                
+                if (actualRate === expectedRate) {
+                    addResult('success', '✅ 语速配置正确应用！');
+                } else {
+                    addResult('warning', '⚠️ 语速配置未正确应用');
+                }
+                
+                // 检查其他配置
+                addResult('info', `音量: ${speechSystem.volume} (期望: ${getConfig('speech.volume')})`);
+                addResult('info', `音调: ${speechSystem.pitch} (期望: ${getConfig('speech.pitch')})`);
+                addResult('info', `首选语音数量: ${speechSystem.preferredVoices.length}`);
+                
+            } catch (error) {
+                addResult('warning', `❌ 测试失败: ${error.message}`);
+                console.error('详细错误:', error);
+            }
+        }
+
+        // 测试语速设置
+        function testSpeechRate() {
+            if (!speechSystem) {
+                addResult('warning', '请先运行"测试语音配置"');
+                return;
+            }
+            
+            const currentRate = speechSystem.rate;
+            addResult('info', `当前语速设置: ${currentRate}`);
+            
+            if (currentRate === 2) {
+                addResult('success', '✅ 语速已设置为 2（快速）');
+            } else if (currentRate === 0.6) {
+                addResult('info', '语速为 0.6（默认慢速）');
+            } else {
+                addResult('info', `语速为自定义值: ${currentRate}`);
+            }
+        }
+
+        // 播放测试音频
+        function playTestAudio() {
+            if (!speechSystem) {
+                addResult('warning', '请先运行"测试语音配置"');
+                return;
+            }
+            
+            addResult('info', '播放测试音频...');
+            speechSystem.speak('你好，这是语速测试', '你好');
+            
+            setTimeout(() => {
+                addResult('success', '✅ 音频播放完成，请注意语速是否符合配置');
+            }, 3000);
+        }
+
+        // 页面加载完成后显示配置
+        window.addEventListener('load', () => {
+            displayConfig();
+            addResult('info', '页面加载完成，配置已显示');
+        });
+    </script>
+</body>
+</html>

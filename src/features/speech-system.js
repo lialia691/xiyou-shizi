@@ -13,7 +13,6 @@ const PREFERRED_CHINESE_VOICES = [
     'Microsoft Zhiwei - Chinese (Simplified, PRC)',
 
     // 次优先级：其他高质量语音
-    'Google 中文（中国大陆）',
     'Google Chinese (China)',
     'Ting-Ting',
     'Sin-ji',
@@ -32,14 +31,28 @@ class SpeechSystem {
         this.voices = [];
         this.chineseVoice = null;
         this.isEnabled = true;
-        this.volume = 1.0; // 最大音量确保清晰
-        this.rate = 0.6; // 更慢的语速，便于学习拼音
-        this.pitch = 1.0; // 标准音调
+
+        // 🔧 使用统一配置，带默认值回退
+        const speechConfig = (typeof getConfig !== 'undefined') ? getConfig('speech') : {};
+        this.volume = speechConfig.volume || 1.0; // 从配置获取音量
+        this.rate = speechConfig.rate || 0.6; // 从配置获取语速
+        this.pitch = speechConfig.pitch || 1.0; // 从配置获取音调
+        this.preferredVoices = speechConfig.preferredVoices || PREFERRED_CHINESE_VOICES; // 从配置获取首选语音
+
+        // 运行时状态（这些保持在构造函数中）
         this.isPlaying = false; // 添加播放状态管理
         this.currentUtterance = null; // 当前播放的语音
         this.pinyinToCharMap = new Map(); // 使用 Map 替代巨大对象
         this.isMobile = this.detectMobileDevice(); // 检测移动设备
         this.audioActivated = false; // 移动端音频是否已激活
+
+        // 输出配置信息用于调试
+        console.log('🎵 SpeechSystem 配置:', {
+            volume: this.volume,
+            rate: this.rate,
+            pitch: this.pitch,
+            preferredVoicesCount: this.preferredVoices.length
+        });
 
         // 不再在构造函数中调用 init()，改为外部调用
     }
@@ -180,8 +193,8 @@ class SpeechSystem {
         );
 
         if (chineseVoices.length > 0) {
-            // 尝试找到最佳语音（使用提取的常量）
-            for (const preferred of PREFERRED_CHINESE_VOICES) {
+            // 尝试找到最佳语音（使用实例配置的首选语音列表）
+            for (const preferred of this.preferredVoices) {
                 const voice = chineseVoices.find(v =>
                     v.name.includes(preferred) ||
                     v.name === preferred ||

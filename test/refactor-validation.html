@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重构验证测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-btn:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 重构验证测试</h1>
+        <p>验证目录重组后各模块是否正常工作</p>
+        
+        <button class="test-btn" onclick="testModuleLoading()">测试模块加载</button>
+        <button class="test-btn" onclick="testPathResolution()">测试路径解析</button>
+        <button class="test-btn" onclick="testDataAccess()">测试数据访问</button>
+        <button class="test-btn" onclick="testAllModules()">运行所有测试</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <!-- 加载重构后的模块 -->
+    <script src="../src/config/app-config.js"></script>
+    <script src="../src/core/module-manager.js"></script>
+    <script src="../src/core/character-provider.js"></script>
+    <script src="../src/core/data-processor.js"></script>
+    <script src="../src/ai/user-data-manager.js"></script>
+    <script src="../src/ai/review-scheduler.js"></script>
+    <script src="../src/ai/ai-puti-system.js"></script>
+    <script src="../src/features/speech-system.js"></script>
+
+    <script>
+        const results = document.getElementById('test-results');
+        
+        function addResult(type, message) {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function addCodeResult(code) {
+            const pre = document.createElement('pre');
+            pre.textContent = code;
+            results.appendChild(pre);
+        }
+
+        // 测试模块加载
+        async function testModuleLoading() {
+            addResult('info', '开始测试模块加载...');
+            
+            try {
+                // 检查配置是否加载
+                if (typeof AppConfig === 'undefined') {
+                    throw new Error('AppConfig 未加载');
+                }
+                addResult('success', '✅ AppConfig 加载成功');
+                
+                // 检查模块管理器
+                if (typeof ModuleManager === 'undefined') {
+                    throw new Error('ModuleManager 未加载');
+                }
+                addResult('success', '✅ ModuleManager 加载成功');
+                
+                // 检查核心类
+                const coreClasses = ['CharacterProvider', 'DataProcessor', 'AIPutiSystem', 'SpeechSystem'];
+                for (const className of coreClasses) {
+                    if (typeof window[className] === 'undefined') {
+                        throw new Error(`${className} 未加载`);
+                    }
+                    addResult('success', `✅ ${className} 加载成功`);
+                }
+                
+                addResult('success', '🎉 所有模块加载测试通过！');
+                
+            } catch (error) {
+                addResult('error', `❌ 模块加载失败: ${error.message}`);
+            }
+        }
+
+        // 测试路径解析
+        async function testPathResolution() {
+            addResult('info', '开始测试路径解析...');
+            
+            try {
+                // 测试配置路径
+                const charactersPath = getConfig('data.charactersFile');
+                const storiesPath = getConfig('data.storiesFile');
+                
+                addResult('info', `汉字数据路径: ${charactersPath}`);
+                addResult('info', `故事数据路径: ${storiesPath}`);
+                
+                if (charactersPath && storiesPath) {
+                    addResult('success', '✅ 路径配置正确');
+                } else {
+                    throw new Error('路径配置缺失');
+                }
+                
+                // 测试图片路径（检查第一个故事模板）
+                const provider = new CharacterProvider();
+                await provider.load();
+                addResult('success', '✅ CharacterProvider 路径解析成功');
+                
+            } catch (error) {
+                addResult('error', `❌ 路径解析失败: ${error.message}`);
+            }
+        }
+
+        // 测试数据访问
+        async function testDataAccess() {
+            addResult('info', '开始测试数据访问...');
+            
+            try {
+                // 测试汉字数据
+                const provider = new CharacterProvider();
+                await provider.load();
+                
+                const characters = provider.getCharacters(10);
+                if (characters && characters.length > 0) {
+                    addResult('success', `✅ 汉字数据加载成功，获取到 ${characters.length} 个汉字`);
+                    addCodeResult(`示例汉字: ${JSON.stringify(characters.slice(0, 3), null, 2)}`);
+                } else {
+                    throw new Error('汉字数据为空');
+                }
+                
+                // 测试数据处理器
+                const processor = new DataProcessor(provider);
+                await processor.initialize();
+                
+                const gameData = processor.getGameData();
+                if (gameData && gameData.length > 0) {
+                    addResult('success', `✅ 游戏数据生成成功，共 ${gameData.length} 个关卡`);
+                    addCodeResult(`示例关卡: ${JSON.stringify(gameData[0], null, 2)}`);
+                } else {
+                    throw new Error('游戏数据生成失败');
+                }
+                
+            } catch (error) {
+                addResult('error', `❌ 数据访问失败: ${error.message}`);
+                console.error('详细错误:', error);
+            }
+        }
+
+        // 运行所有测试
+        async function testAllModules() {
+            addResult('info', '🚀 开始运行完整测试套件...');
+            
+            await testModuleLoading();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPathResolution();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testDataAccess();
+            
+            addResult('success', '🎉 所有测试完成！');
+        }
+
+        // 页面加载完成后自动运行基础测试
+        window.addEventListener('load', () => {
+            addResult('info', '页面加载完成，准备开始测试...');
+            setTimeout(testModuleLoading, 1000);
+        });
+    </script>
+</body>
+</html>

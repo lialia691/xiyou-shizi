@@ -2,7 +2,7 @@
 // 负责从 chinaword2500.json 加载和过滤汉字数据
 
 class CharacterProvider {
-    constructor(filePath = './chinaword2500.json') {
+    constructor(filePath = './data/chinaword2500.json') {
         this.filePath = filePath;
         this.characterList = [];
         this.characterMap = new Map(); // 性能优化：汉字索引 Map

@@ -1,7 +1,7 @@
 // 数据处理器 - 整合数据管理和游戏内容生成
 // 合并了原 data.js 的功能，提供统一的数据管理接口
 class DataProcessor {
-    constructor(characterProvider, storiesFilePath = './stories.json') {
+    constructor(characterProvider, storiesFilePath = './data/stories.json') {
         // 依赖注入：接收 CharacterProvider 实例
         this.characterProvider = characterProvider;
         this.storiesFilePath = storiesFilePath;
@@ -82,7 +82,7 @@ class DataProcessor {
         return [
             {
                 "scene": "花果山水帘洞",
-                "image": "images/huaguoshan.jpg",
+                "image": "assets/images/huaguoshan.jpg",
                 "background": "在东胜神洲傲来国花果山上，有一块仙石孕育出了石猴。",
                 "characters": ["石", "猴", "山", "水", "洞", "仙", "王", "群", "众", "美"],
                 "story": "石猴带领群猴发现了水帘洞，成为了美猴王。",
@@ -93,7 +93,7 @@ class DataProcessor {
             },
             {
                 "scene": "龙宫借宝",
-                "image": "images/longgong.jpg",
+                "image": "assets/images/longgong.jpg",
                 "background": "美猴王为了寻找趁手的兵器，来到了东海龙宫。",
                 "characters": ["龙", "王", "宫", "宝", "金", "箍", "棒", "重", "万", "斤"],
                 "story": "孙悟空在龙宫得到了如意金箍棒，重达一万三千五百斤。",
@@ -104,7 +104,7 @@ class DataProcessor {
             },
             {
                 "scene": "大闹天宫",
-                "image": "images/tiangong.jpg",
+                "image": "assets/images/tiangong.jpg",
                 "background": "孙悟空因为不满天庭的待遇，大闹天宫。",
                 "characters": ["天", "宫", "玉", "帝", "神", "仙", "兵", "将", "战", "斗"],
                 "story": "齐天大圣孙悟空与天兵天将大战，闹得天宫不得安宁。",
@@ -115,7 +115,7 @@ class DataProcessor {
             },
             {
                 "scene": "五行山下",
-                "image": "images/wuxingshan.jpg",
+                "image": "assets/images/wuxingshan.jpg",
                 "background": "如来佛祖用五行山压住了孙悟空，一压就是五百年。",
                 "characters": ["五", "行", "山", "佛", "祖", "压", "年", "等", "待", "人"],
                 "story": "孙悟空被压在五行山下五百年，等待取经人的到来。",
@@ -126,7 +126,7 @@ class DataProcessor {
             },
             {
                 "scene": "观音点化",
-                "image": "images/guanyin.jpg",
+                "image": "assets/images/guanyin.jpg",
                 "background": "观音菩萨奉如来佛祖之命，寻找取经人。",
                 "characters": ["观", "音", "菩", "萨", "唐", "僧", "取", "经", "西", "天"],
                 "story": "观音菩萨告诉唐僧，救出孙悟空作为徒弟保护取经。",
